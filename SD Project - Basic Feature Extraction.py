@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import IPython
 
 
-import mir_eval
+#import mir_eval
 
 
 # In[275]:
@@ -162,7 +162,7 @@ clicks = librosa.clicks(frames=a_onset, sr=sr, length=len(a))
 # In[291]:
 
 
-IPython.display.Audio(x + clicks, rate=sr)
+IPython.display.Audio(a + clicks, rate=sr)
 
 
 # In[292]:
