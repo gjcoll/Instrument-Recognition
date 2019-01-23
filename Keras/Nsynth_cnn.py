@@ -35,6 +35,8 @@ x_train, x_test, y_train, y_test = \
 #     x_test = x_test.reshape(x_test.shape[0], img_rows, img_cols, 1)
 #     input_shape = (img_rows, img_cols, 1)
 
+input_shape = (1, img_rows, img_cols)
+
 x_train = x_train.astype('float32')
 x_test = x_test.astype('float32')
 x_train /= 255 # Test with this and without
