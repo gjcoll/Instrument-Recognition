@@ -63,9 +63,11 @@ def mel_spec_it(signal,fs):
     return melS
 
 def load_npz(npz_file):
-    ## Function to load a compressed .npz file into an array ##
+    ## Function to load a compressed .npz file into an array of data and labels ##
     ## -------------
     aloda = np.load(npz_file)
-    dest_arry = aloda['a']
+    data_arry = aloda['data']
+    label_arry = aloda['labels']
     
-    return dest_arry
+    
+    return data_arry,label_arry
