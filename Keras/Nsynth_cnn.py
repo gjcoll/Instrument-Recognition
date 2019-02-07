@@ -17,7 +17,7 @@ import numpy as np
 
 
 batch_size = 128
-num_classes = 10
+num_classes = 2
 epochs = 12
 
 # input image dimensions
