@@ -6,7 +6,7 @@ import scipy
 import shutil
 import gzip
 
-def load_folder(data_path,max_count):
+def load_folder(data_path,max_count,done_folder):
     ## Function to load .wav files in a given folder to an array of (data, sample rate) ##
     # INPUTS:
     # data_path = string to folder containing files to be loaded
@@ -15,22 +15,23 @@ def load_folder(data_path,max_count):
         # if max_count == 0 then whole folder will be loaded
     ## ------------------------------ 
   
-    samples = []
-    count = 0
+    samples = [];
+    count = 0;
     
     if max_count!= 0: #Load first 'max_count' number of files from folder
         for file in glob.glob(os.path.join(data_path,'*.wav')):
             if count < max_count:
-                temp,sr = librosa.load(file)
-                temp = librosa.util.fix_length(temp,2*sr)
+                temp,sr = librosa.load(file);
+                temp = librosa.util.fix_length(temp,2*sr);
                 samples.append([temp,sr])
-                count+=1
+                shutil.move(file,done_folder);
+                count+=1;
                 
     else:
     #load whole folder
          for file in glob.glob(os.path.join(data_path,'*.wav')):
-                temp,sr = librosa.load(file)
-                temp = librosa.util.fix_length(temp,2*sr)
+                temp,sr = librosa.load(file);
+                temp = librosa.util.fix_length(temp,2*sr);
                 samples.append([temp,sr])
                 
     return samples
@@ -71,3 +72,27 @@ def load_npz(npz_file):
     
     
     return data_arry,label_arry
+
+def load_npz_old(npz_file):
+    ## use if load_npz returning error about 'data' not being found 
+    ## (these are from an oder version of formatting I used when first parsing, 
+    # I need to rerun some of these, the mel spec data is correct and useable from this load function)
+
+    aloda = np.load(npz_file)
+    data_ary = aloda['a']
+
+    return data_ary
+    
+
+def spec_multiple(src_path, dest_path, done_folder, label, max_count = 2000):
+
+    #load in max_count # of samples (defult 2000)
+    A_samp = load_folder(src_path,max_count,done_folder)
+    # Generate Mel spectrograms (128)
+    melspecs_A = [mel_spec_it(x[0],x[1]) for x in A_samp]
+    # Generate Label Array based on input label
+    A_labels = np.full(shape = np.shape(melspecs_A)[0],fill_value = label)
+    # Save to compressed file, file of two arrays 'data' = audio part (mel specs), 'labels' = label array
+    np.savez_compressed(dest_path, data = melspecs_A, labels = A_labels)
+
+    return np.shape(melspecs_A)
