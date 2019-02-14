@@ -15,23 +15,23 @@ def load_folder(data_path,max_count,done_folder):
         # if max_count == 0 then whole folder will be loaded
     ## ------------------------------ 
   
-    samples = [];
-    count = 0;
+    samples = []
+    count = 0
     
     if max_count!= 0: #Load first 'max_count' number of files from folder
         for file in glob.glob(os.path.join(data_path,'*.wav')):
             if count < max_count:
-                temp,sr = librosa.load(file);
-                temp = librosa.util.fix_length(temp,2*sr);
+                temp,sr = librosa.load(file)
+                temp = librosa.util.fix_length(temp,2*sr)
                 samples.append([temp,sr])
-                shutil.move(file,done_folder);
-                count+=1;
+                shutil.move(file,done_folder)
+                count+=1
                 
     else:
     #load whole folder
          for file in glob.glob(os.path.join(data_path,'*.wav')):
-                temp,sr = librosa.load(file);
-                temp = librosa.util.fix_length(temp,2*sr);
+                temp,sr = librosa.load(file)
+                temp = librosa.util.fix_length(temp,2*sr)
                 samples.append([temp,sr])
                 
     return samples
