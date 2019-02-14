@@ -1,5 +1,6 @@
 import glob, os, pickle
-names = [os.path.basename(x) for x in glob.glob('C:/Users/John Dwyer/Desktop/School/SeniorDesignTutorial/Instrument-Recognition/Data Samples/**/*.wav', recursive=True)]
+path='input your path to the datasamples here'
+names = [os.path.basename(x) for x in glob.glob(path, recursive=True)]
 fileinfo={}
 print(len(names))
 for i in names:
