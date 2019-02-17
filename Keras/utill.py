@@ -96,3 +96,38 @@ def spec_multiple(src_path, dest_path, done_folder, label, max_count = 2000):
     np.savez_compressed(dest_path, data = melspecs_A, labels = A_labels)
 
     return np.shape(melspecs_A)
+
+
+def load_folder_IRMAS(data_path,max_count,done_folder):
+    ## Downsamples tp 22050 and converts stero to mono and only loads 1sec to make dimensions match the paper
+
+    ## Function to load .wav files in a given folder to an array of (data, sample rate) ##
+    # INPUTS:
+    # data_path = string to folder containing files to be loaded
+    # max_count = number of files you wish to load in
+        ## max_count can be used to only load the first "max_count" number of files from a folder,
+        # if max_count == 0 then whole folder will be loaded
+    ## ------------------------------ 
+  
+    samples = [];
+    count = 0;
+    downsamp = 22050
+    
+    if max_count!= 0: #Load first 'max_count' number of files from folder
+        for file in glob.glob(os.path.join(data_path,'*.wav')):
+            if count < max_count:
+                temp,sr = librosa.core.load(file,sr = downsamp,mono = True,duration = 1); # downsample to 22050 and make mono (default)
+                # temp = librosa.util.fix_length(temp,2*sr);
+                samples.append([temp,sr])
+                shutil.move(file,done_folder);
+                count+=1;
+                
+    else:
+    #load whole folder
+         for file in glob.glob(os.path.join(data_path,'*.wav')):
+                temp,sr = librosa.core.load(file,sr = downsamp,mono = True,duration = 1); # downsample to 22050 and make mono (idk if the mono right)
+                # temp = librosa.util.fix_length(temp,2*sr);
+                samples.append([temp,sr])
+                
+    return samples
+
