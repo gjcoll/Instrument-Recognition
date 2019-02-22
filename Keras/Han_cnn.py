@@ -13,6 +13,7 @@ from keras import backend as K
 from sklearn.model_selection import train_test_split
 from keras.backend import spatial_2d_padding
 from keras.backend import expand_dims
+# import matplotlib
 import utill
 import os
 import numpy as np
@@ -23,23 +24,33 @@ import numpy as np
 
 
 batch_size = 128
-num_classes = 2
-epochs = 12
+num_classes = 8
+epochs = 24*2
 
-# input image dimensions
-img_rows, img_cols = 128, 87 # Needs to be set to the dimensions of the Nsynth Data
+
 
 
 cwd = os.getcwd()
 # the data, split between train and test sets
-bass_set=utill.load_npz_old(cwd+'\\Keras\\nsynth_melSpecs\\bas_1000.npz')
+filedir = '\\Keras\\IRMAS_npzs\\'
+# Should build a function for the npzloading of a whole folder
+# cel_set,cel_label=utill.load_npz(cwd+'\\Keras\\IRMAS_npzs\\IRMAS_cel_A.npz')
+# cla_set,cla_label=utill.load_npz(cwd+'\\Keras\\IRMAS_npzs\\IRMAS_cla_A.npz')
+# flu_set,flu_label=utill.load_npz(cwd+'\\Keras\\IRMAS_npzs\\IRMAS_flu_A.npz')
+# gac_set,gac_label=utill.load_npz(cwd+'\\Keras\\IRMAS_npzs\\IRMAS_gac_A.npz')
+# gel_set,gel_label=utill.load_npz(cwd+'\\Keras\\IRMAS_npzs\\IRMAS_gel_A.npz')
+# org_set,org_label=utill.load_npz(cwd+'\\Keras\\IRMAS_npzs\\IRMAS_org_A.npz')
+# pia_set,pia_label=utill.load_npz(cwd+'\\Keras\\IRMAS_npzs\\IRMAS_pia_A.npz')
+# sax_set,sax_label=utill.load_npz(cwd+'\\Keras\\IRMAS_npzs\\IRMAS_sax_A.npz')
 
-voc_set=utill.load_npz_old(cwd+'\\Keras\\nsynth_melSpecs\\voc_1000.npz')
-X = np.append(bass_set,voc_set, axis=0)
-y = np.append(np.ones(1000,dtype=int),np.zeros(1000,dtype=int))
+X,y = utill.read_npz_folder(filedir)
+
+# flu_label = flu_label*7
+# X = np.append(cel_set,[cla_set,flu_set,gac_set,gel_set,org_set,pia_set,sax_set], axis = 0)
+# y = np.append(cel_label, [cla_label,flu_label,gac_label,gel_label,org_label,pia_label,sax_label],axis = 0)
 
 x_train, x_test, y_train, y_test = \
-        train_test_split(X, y, test_size=.4, random_state=42)
+        train_test_split(X, y, test_size=.15, random_state=42)
 
 # if K.image_data_format() == 'channels_first':
 #     x_train = x_train.reshape(x_train.shape[0], 1, img_rows, img_cols)
@@ -49,6 +60,9 @@ x_train, x_test, y_train, y_test = \
 #     x_train = x_train.reshape(x_train.shape[0], img_rows, img_cols, 1)
 #     x_test = x_test.reshape(x_test.shape[0], img_rows, img_cols, 1)
 #     input_shape = (img_rows, img_cols, 1)
+
+# input image dimensions
+img_rows, img_cols = x_train.shape[1], x_train.shape[2] # Needs to be set to the dimensions of the Nsynth Data
 
 x_train = x_train.reshape(x_train.shape[0], img_rows, img_cols, 1)
 x_test = x_test.reshape(x_test.shape[0], img_rows, img_cols, 1)
@@ -67,7 +81,7 @@ print(x_test.shape[0], 'test samples')
 y_train = keras.utils.to_categorical(y_train, num_classes)
 y_test = keras.utils.to_categorical(y_test, num_classes)
 print(y_test.shape)
-input_shape = (img_rows, 43, 1)
+# input_shape = (img_rows, 43, 1)
 
 model = Sequential()
 
@@ -121,14 +135,14 @@ model.add(GlobalMaxPooling2D())
 model.add(Dense(1024, activation='linear'))
 model.add(LeakyReLU(alpha = 0.33))
 model.add(Dropout(0.5))
-model.add(Dense(num_classes, activation='softmax'))
+model.add(Dense(num_classes, activation='sigmoid'))
 
-
+# sdg = keras.optimizers()
 model.compile(loss=keras.losses.categorical_crossentropy,
               optimizer=keras.optimizers.Adadelta(),
               metrics=['accuracy'])
 
-model.fit(x_train, y_train,
+history=model.fit(x_train, y_train,
           batch_size=batch_size,
           epochs=epochs,
           verbose=1,
@@ -136,3 +150,20 @@ model.fit(x_train, y_train,
 score = model.evaluate(x_test, y_test, verbose=0)
 print('Test loss:', score[0])
 print('Test accuracy:', score[1])
+
+# # Plotting of accuracy
+# plt.plot(history.history['acc'])
+# plt.plot(history.history['val_acc'])
+# plt.title('Model accuracy')
+# plt.ylabel('Accuracy')
+# plt.xlabel('Epoch')
+# plt.legend(['Train', 'Test'], loc='upper left')
+# plt.show()
+# # Plotting of loss
+# plt.plot(history.history['loss'])
+# plt.plot(history.history['val_loss'])
+# plt.title('Model loss')
+# plt.ylabel('Loss')
+# plt.xlabel('Epoch')
+# plt.legend(['Train', 'Test'], loc='upper left')
+# plt.show()

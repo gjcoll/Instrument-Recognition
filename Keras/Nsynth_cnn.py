@@ -11,6 +11,7 @@ from keras.layers import Dense, Dropout, Flatten
 from keras.layers import Conv2D, MaxPooling2D
 from keras import backend as K
 from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
 import utill
 import os
 import numpy as np
@@ -26,9 +27,9 @@ img_rows, img_cols = 128, 87 # Needs to be set to the dimensions of the Nsynth D
 
 cwd = os.getcwd()
 # the data, split between train and test sets
-bass_set=utill.load_npz(cwd+'\\Keras\\nsynth_melSpecs\\bas_1000.npz')
+bass_set=utill.load_npz_old(cwd+'\\Keras\\nsynth_melSpecs\\bas_1000.npz')
 
-voc_set=utill.load_npz(cwd+'\\Keras\\nsynth_melSpecs\\voc_1000.npz')
+voc_set=utill.load_npz_old(cwd+'\\Keras\\nsynth_melSpecs\\voc_1000.npz')
 X = np.append(bass_set,voc_set, axis=0)
 y = np.append(np.ones(1000,dtype=int),np.zeros(1000,dtype=int))
 
@@ -78,7 +79,7 @@ model.compile(loss=keras.losses.categorical_crossentropy,
               optimizer=keras.optimizers.Adadelta(),
               metrics=['accuracy'])
 
-model.fit(x_train, y_train,
+history=model.fit(x_train, y_train,
           batch_size=batch_size,
           epochs=epochs,
           verbose=1,
@@ -86,3 +87,24 @@ model.fit(x_train, y_train,
 score = model.evaluate(x_test, y_test, verbose=0)
 print('Test loss:', score[0])
 print('Test accuracy:', score[1])
+
+
+import matplotlib.pyplot as plt
+print('Plotting')
+# Plotting of accuracy
+plt.plot(history.history['acc'])
+plt.plot(history.history['val_acc'])
+plt.title('Model accuracy')
+plt.ylabel('Accuracy')
+plt.xlabel('Epoch')
+plt.legend(['Train', 'Test'], loc='upper left')
+plt.show(block = False)
+# Plotting of loss
+plt.plot(history.history['loss'])
+plt.plot(history.history['val_loss'])
+plt.title('Model loss')
+plt.ylabel('Loss')
+plt.xlabel('Epoch')
+plt.legend(['Train', 'Test'], loc='upper left')
+plt.show(block = False)
+input('press <ENTER> to continue')
