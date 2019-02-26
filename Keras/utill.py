@@ -85,17 +85,35 @@ def load_npz_old(npz_file):
     
 
 def spec_multiple(src_path, dest_path, done_folder, label, max_count = 2000):
+    ## Function that combines loading, mel spec and compressing for multiple samples 
+    # src_path = samples (.wav) folder
+    # dest_path = path for resulting compressed path (.npz)
+    # done_folder = path to folder to move sample files that are done to - this makes knowing where to start another itteration easier
+    # label = binary label for samples
+    # max_count = number of files to process, default = 2000
 
     #load in max_count # of samples (defult 2000)
-    A_samp = load_folder(src_path,max_count,done_folder)
+    # A_samp = load_folder(src_path,max_count,done_folder)
+    A_samp = load_folder_IRMAS(src_path,max_count,done_folder)
+
+    # normaize by dividiving time domain signal by max value
+    A_norm = []
+    
+    for tds in A_samp:
+        tds_max = np.amax(tds[0])
+        A_norm.append([tds[0]/tds_max , tds[1]])
+
+
     # Generate Mel spectrograms (128)
-    melspecs_A = [mel_spec_it(x[0],x[1]) for x in A_samp]
+    melspecs_A = [mel_spec_it(x[0],x[1]) for x in A_norm]
     # Generate Label Array based on input label
-    A_labels = np.full(shape = np.shape(melspecs_A)[0],fill_value = label)
+    # A_labels = np.full(shape = np.shape(melspecs_A)[0],fill_value = label)
+    A_labels = np.tile(label,[np.shape(melspecs_A)[0],1])
     # Save to compressed file, file of two arrays 'data' = audio part (mel specs), 'labels' = label array
     np.savez_compressed(dest_path, data = melspecs_A, labels = A_labels)
 
     return np.shape(melspecs_A)
+    
 
 
 def load_folder_IRMAS(data_path,max_count,done_folder):
