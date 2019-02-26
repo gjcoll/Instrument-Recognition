@@ -127,25 +127,47 @@ def load_folder_IRMAS(data_path,max_count,done_folder):
         # if max_count == 0 then whole folder will be loaded
     ## ------------------------------ 
   
-    samples = [];
-    count = 0;
+    samples = []
+    count = 0
     downsamp = 22050
     
     if max_count!= 0: #Load first 'max_count' number of files from folder
         for file in glob.glob(os.path.join(data_path,'*.wav')):
             if count < max_count:
-                temp,sr = librosa.core.load(file,sr = downsamp,mono = True,duration = 1); # downsample to 22050 and make mono (default)
+                temp,sr = librosa.core.load(file,sr = downsamp,mono = True,duration = 1) # downsample to 22050 and make mono (default)
                 # temp = librosa.util.fix_length(temp,2*sr);
                 samples.append([temp,sr])
-                shutil.move(file,done_folder);
-                count+=1;
+                shutil.move(file,done_folder)
+                count+=1
                 
     else:
     #load whole folder
          for file in glob.glob(os.path.join(data_path,'*.wav')):
-                temp,sr = librosa.core.load(file,sr = downsamp,mono = True,duration = 1); # downsample to 22050 and make mono (idk if the mono right)
+                temp,sr = librosa.core.load(file,sr = downsamp,mono = True,duration = 1) # downsample to 22050 and make mono (idk if the mono right)
                 # temp = librosa.util.fix_length(temp,2*sr);
                 samples.append([temp,sr])
                 
     return samples
+
+
+def get_npz_filenames(filedir):
+    cw = os.getcwd()
+    for roots, dirs,files in os.walk(cw + filedir):
+        return roots, (f for f in files)
+
+def read_npz_folder(filedir):
+    root, files = get_npz_filenames(filedir)
+    X,y = load_npz(root + next(files))
+    for f in files:
+        if f == 'IRMAS_flu_A.npz':
+            data, label = load_npz(root + f)
+            label = label * 7
+            X = np.append(X,data, axis =0)
+            y = np.append(y,label, axis =0)
+        elif f[-4:] == '.npz':
+            data, label = load_npz(root + f)
+            X = np.append(X,data, axis =0)
+            y = np.append(y,label, axis =0)
+    return X, y
+    
 
