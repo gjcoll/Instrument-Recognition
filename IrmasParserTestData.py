@@ -1,9 +1,9 @@
 import glob, os, pickle
-names = [os.path.basename(x) for x in glob.glob('C:/Users/John Dwyer/Desktop/School/SeniorDesignTutorial/Instrument-Recognition/Test Data/**/*.wav', recursive=True)]
+names = [os.path.basename(x) for x in glob.glob('Path to test data', recursive=True)]
 fileinfo={}
 i=0;
-os.chdir("C:/Users/John Dwyer/Desktop/School/SeniorDesignTutorial/Instrument-Recognition/Test Data")
-for file in os.listdir("C:/Users/John Dwyer/Desktop/School/SeniorDesignTutorial/Instrument-Recognition/Test Data"):
+os.chdir("Input directory of test files, onlu used if not in same directory as this parser.")
+for file in os.listdir("Path to test data"):
     if file.endswith(".txt"):
         with open(file) as myfile:
             # print(myfile.read())
