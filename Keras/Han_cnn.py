@@ -24,7 +24,7 @@ import numpy as np
 
 
 batch_size = 128
-num_classes = 8
+num_classes = 11
 epochs = 24*2
 
 
@@ -32,7 +32,7 @@ epochs = 24*2
 
 cwd = os.getcwd()
 # the data, split between train and test sets
-filedir = '\\Keras\\IRMAS_npzs\\'
+filedir = '\\Keras\\IRMAS_npzs_B\\'
 # Should build a function for the npzloading of a whole folder
 # cel_set,cel_label=utill.load_npz(cwd+'\\Keras\\IRMAS_npzs\\IRMAS_cel_A.npz')
 # cla_set,cla_label=utill.load_npz(cwd+'\\Keras\\IRMAS_npzs\\IRMAS_cla_A.npz')
@@ -77,9 +77,7 @@ print('x_train shape:', x_train.shape)
 print(x_train.shape[0], 'train samples')
 print(x_test.shape[0], 'test samples')
 
-# convert class vectors to binary class matrices
-y_train = keras.utils.to_categorical(y_train, num_classes)
-y_test = keras.utils.to_categorical(y_test, num_classes)
+
 print(y_test.shape)
 # input_shape = (img_rows, 43, 1)
 
@@ -137,9 +135,9 @@ model.add(LeakyReLU(alpha = 0.33))
 model.add(Dropout(0.5))
 model.add(Dense(num_classes, activation='sigmoid'))
 
-# sdg = keras.optimizers()
-model.compile(loss=keras.losses.categorical_crossentropy,
-              optimizer=keras.optimizers.Adadelta(),
+
+ model.compile(loss=keras.losses.categorical_crossentropy,
+              optimizer=keras.optimizers.Adam(),
               metrics=['accuracy'])
 
 history=model.fit(x_train, y_train,
@@ -148,8 +146,13 @@ history=model.fit(x_train, y_train,
           verbose=1,
           validation_data=(x_test, y_test))
 score = model.evaluate(x_test, y_test, verbose=0)
+
+
 print('Test loss:', score[0])
 print('Test accuracy:', score[1])
+
+
+
 
 # # Plotting of accuracy
 # plt.plot(history.history['acc'])
