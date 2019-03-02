@@ -13,7 +13,7 @@ from keras import backend as K
 from sklearn.model_selection import train_test_split
 from keras.backend import spatial_2d_padding
 from keras.backend import expand_dims
-# import matplotlib
+import matplotlib.pyplot as plt
 import utill
 import os
 import numpy as np
@@ -136,7 +136,7 @@ model.add(Dropout(0.5))
 model.add(Dense(num_classes, activation='sigmoid'))
 
 
- model.compile(loss=keras.losses.categorical_crossentropy,
+model.compile(loss=keras.losses.categorical_crossentropy,
               optimizer=keras.optimizers.Adam(),
               metrics=['accuracy'])
 
@@ -154,19 +154,26 @@ print('Test accuracy:', score[1])
 
 
 
-# # Plotting of accuracy
-# plt.plot(history.history['acc'])
-# plt.plot(history.history['val_acc'])
-# plt.title('Model accuracy')
-# plt.ylabel('Accuracy')
-# plt.xlabel('Epoch')
-# plt.legend(['Train', 'Test'], loc='upper left')
-# plt.show()
-# # Plotting of loss
-# plt.plot(history.history['loss'])
-# plt.plot(history.history['val_loss'])
-# plt.title('Model loss')
-# plt.ylabel('Loss')
-# plt.xlabel('Epoch')
-# plt.legend(['Train', 'Test'], loc='upper left')
-# plt.show()
+# Plotting of accuracy
+plt.plot(history.history['acc'])
+plt.plot(history.history['val_acc'])
+plt.title('Model accuracy')
+plt.ylabel('Accuracy')
+plt.xlabel('Epoch')
+plt.legend(['Train', 'Test'], loc='upper left')
+plt.show()
+# Plotting of loss
+plt.plot(history.history['loss'])
+plt.plot(history.history['val_loss'])
+plt.title('Model loss')
+plt.ylabel('Loss')
+plt.xlabel('Epoch')
+plt.legend(['Train', 'Test'], loc='upper left')
+plt.show()
+
+model_json = model.to_json()
+with open("model.json", "w") as json_file:
+    json_file.write(model_json)
+# serialize weights to HDF5
+model.save_weights("model.h5")
+print("Saved model to disk")
