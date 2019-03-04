@@ -6,6 +6,7 @@ import scipy
 import shutil
 import gzip
 
+
 def load_folder(data_path,max_count,done_folder):
     ## Function to load .wav files in a given folder to an array of (data, sample rate) ##
     # INPUTS:
@@ -154,9 +155,17 @@ def load_folder_IRMAS(data_path,max_count,done_folder):
 
 
 def get_npz_filenames(filedir):
+    ## Function to get npz_filenames given a directory to look it
+    # INPUTS:
+    # filedir = a file directory containing npz files
+    #
+    # OUTPUT
+    # roots = the root directory
+    # npz_files = generator object within root containing npz_files
     cw = os.getcwd()
     for roots, dirs,files in os.walk(cw + filedir):
-        return roots, (f for f in files)
+        npz_files = (f for f in files)
+        return roots, npz_files
 
 def read_npz_folder(filedir):
     root, files = get_npz_filenames(filedir)
@@ -169,8 +178,12 @@ def read_npz_folder(filedir):
             y = np.append(y,label, axis =0)
         elif f[-4:] == '.npz':
             data, label = load_npz(root + f)
-            X = np.append(X,data, axis =0)
-            y = np.append(y,label, axis =0)
+            try:
+                X = np.append(X,data, axis =0)
+                y = np.append(y,label, axis =0)
+            except:
+                print('An error has occured when loading file ', f)    
     return X, y
-    
+
+
 
