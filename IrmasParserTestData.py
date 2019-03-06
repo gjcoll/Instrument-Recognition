@@ -1,19 +1,21 @@
 import glob, os, pickle
-names = [os.path.basename(x) for x in glob.glob('Path to test data', recursive=True)]
+names = [os.path.basename(x) for x in glob.glob('C:/Users/John Dwyer/Desktop/School/SeniorDesignTutorial/Instrument-Recognition/Test Data/**/*.wav', recursive=True)]
 fileinfo={}
 i=0;
-os.chdir("Input directory of test files, onlu used if not in same directory as this parser.")
-for file in os.listdir("Path to test data"):
+os.chdir("C:/Users/John Dwyer/Desktop/School/SeniorDesignTutorial/Instrument-Recognition/Test Data")
+for file in os.listdir("C:/Users/John Dwyer/Desktop/School/SeniorDesignTutorial/Instrument-Recognition/Test Data"):
     if file.endswith(".txt"):
         with open(file) as myfile:
             # print(myfile.read())
-            # cel cla flu gac gel org pia sax tru vio voi nod dru pop_roc bvgvcf jaz_blu cou_fol lat_sou
-            fileparams = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+            # cel cla flu gac gel org pia sax tru vio voi nod dru
+            fileparams = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+            testparams = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
             for line in myfile.readlines():
-
                 if 'cel' in line:
                     fileparams[0] = 1
                 if 'cla' in line:
+                    if fileparams != testparams:
+                        continue
                     fileparams[1] = 1
                 if 'flu' in line:
                     fileparams[2] = 1
@@ -37,14 +39,6 @@ for file in os.listdir("Path to test data"):
                     fileparams[11] = 1
                 if 'dru' in line:
                     fileparams[12] = 1
-                if 'pop_roc' in line:
-                    fileparams[13] = 1
-                if 'jaz_blu' in line:
-                    fileparams[14] = 1
-                if 'cou_fol' in line:
-                    fileparams[15] = 1
-                if 'lat_sou' in line:
-                    fileparams[16] = 1
             fileinfo[names[i]]=fileparams
             i=i+1;
 
