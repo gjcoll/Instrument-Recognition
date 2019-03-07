@@ -25,16 +25,17 @@ def l_model(model_json, model_weights_h5):
     model.load_weights(model_weights_h5)
     return model
 
-
-
-if __name__ == "__main__":
+def load_model_testcase():
     ## Load Data ##
     cwd = os.getcwd()
     model = Han_cnn.Han_model()
     model_weights_h5 = cwd+"\\Models\\model_03032019_0.h5"
     model.load_weights(model_weights_h5)
-    ## Load training and testing data
-    filedir = '\\Keras\\mixed_npz_3219\\'
-    X,y = utill.read_npz_folder(filedir)
-    y_predict = model.predict(X,y)
-    keras.models.confu
+    return True
+
+if __name__ == "__main__":
+
+    y = np.load('y_true.npy')
+    y = utill.mutilabel2single(y)
+    utill.plot_confusion_matrix(y,y,utill.CLASS_NAMES)
+    

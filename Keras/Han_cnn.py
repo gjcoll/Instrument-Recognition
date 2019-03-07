@@ -99,54 +99,53 @@ if __name__ == "__main__":
     x_test = x_test.reshape(x_test.shape[0], img_rows, img_cols, 1)
     input_shape = (img_rows, img_cols, 1)
 
-    print(y_train.shape)
     x_train = x_train.astype('float32')
     x_test = x_test.astype('float32')
     x_train /= 255 # Test with this and without
     x_test /= 255 # Test with this and without
-    print('x_train shape:', x_train.shape)
-    print(x_train.shape[0], 'train samples')
-    print(x_test.shape[0], 'test samples')
 
 
-    print(y_test.shape)
     
-
+    score=[0,0]
     model= Han_model(input_shape,num_classes)
+    while score[1] < 0.68: 
+        
 
-    model.compile(loss=keras.losses.categorical_crossentropy,
-                optimizer=keras.optimizers.Adam(),
-                metrics=['accuracy'])
+        model.compile(loss=keras.losses.categorical_crossentropy,
+                    optimizer=keras.optimizers.Adam(),
+                    metrics=['accuracy'])
 
-    early_stopping_monitor = EarlyStopping(patience=3)
+        early_stopping_monitor = EarlyStopping(patience=3)
 
-    history=model.fit(x_train, y_train,
-            batch_size=batch_size,
-            epochs=epochs,
-            verbose=1,
-            validation_data=(x_test, y_test),
-            callbacks=[early_stopping_monitor])
-    score = model.evaluate(x_test, y_test, verbose=0)
-
-
-    print('Test loss:', score[0])
-    print('Test accuracy:', score[1])
+        history=model.fit(x_train, y_train,
+                batch_size=batch_size,
+                epochs=epochs,
+                verbose=1,
+                validation_data=(x_test, y_test),
+                callbacks=[early_stopping_monitor])
+        score = model.evaluate(x_test, y_test, verbose=0)
 
 
+        print('Test loss:', score[0])
+        print('Test accuracy:', score[1])
 
+
+    model_name = input('Please enter the name of the model: ')
 
     # Plotting of accuracy
-    utill.plot_accuracy(history)
+    utill.plot_accuracy(history,model_name=model_name)
     # Plotting of loss
-    utill.plot_loss(history)
+    utill.plot_loss(history,model_name=model_name)
 
-    y_pred = model.predict(y_test)
-
-    utill.plot_confusion_matrix(y_test,y_pred,)
-    
     model_json = model.to_json()
-    with open("model.json", "w") as json_file:
+    with open(model_name +".json", "w") as json_file:
         json_file.write(model_json)
     # serialize weights to HDF5
-    model.save_weights("model.h5")
+    model.save_weights(model_name+"_weights.h5")
     print("Saved model to disk")
+
+    y_pred = model.predict(x_test)
+    y_sl_true = utill.mutilabel2single(y_test)
+    y_sl_pred = utill.mutilabel2single(y_pred)
+
+    utill.plot_confusion_matrix(y_sl_true,y_sl_pred,utill.CLASS_NAMES,title = model_name)
