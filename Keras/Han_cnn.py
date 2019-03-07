@@ -9,6 +9,7 @@ import keras
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Flatten, LeakyReLU, Lambda
 from keras.layers import Conv2D, MaxPooling2D, GlobalMaxPooling2D
+from keras.callbacks import EarlyStopping
 from keras import backend as K
 from sklearn.model_selection import train_test_split
 from keras.backend import spatial_2d_padding
@@ -32,7 +33,7 @@ epochs = 24*2
 
 cwd = os.getcwd()
 # the data, split between train and test sets
-filedir = '\\Keras\\IRMAS_npzs_B\\'
+filedir = '\\Keras\\mixed_npz_3219\\'
 # Should build a function for the npzloading of a whole folder
 # cel_set,cel_label=utill.load_npz(cwd+'\\Keras\\IRMAS_npzs\\IRMAS_cel_A.npz')
 # cla_set,cla_label=utill.load_npz(cwd+'\\Keras\\IRMAS_npzs\\IRMAS_cla_A.npz')
@@ -94,7 +95,6 @@ model.add(Lambda(spatial_2d_padding))
 model.add(Conv2D(32, (3, 3), activation='linear',padding = 'same',strides = 1))
 model.add(LeakyReLU(alpha = 0.33))
 
-
 model.add(MaxPooling2D(pool_size=(3, 3),strides = (3,3)))
 model.add(Dropout(0.25))
 
@@ -140,11 +140,14 @@ model.compile(loss=keras.losses.categorical_crossentropy,
               optimizer=keras.optimizers.Adam(),
               metrics=['accuracy'])
 
+early_stopping_monitor = EarlyStopping(patience=3)
+
 history=model.fit(x_train, y_train,
           batch_size=batch_size,
           epochs=epochs,
           verbose=1,
-          validation_data=(x_test, y_test))
+          validation_data=(x_test, y_test),
+          callbacks=[early_stopping_monitor])
 score = model.evaluate(x_test, y_test, verbose=0)
 
 

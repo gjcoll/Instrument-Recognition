@@ -3,9 +3,15 @@ import glob, os, pickle
 
 names = [os.path.basename(x) for x in glob.glob('C:/Users/John Dwyer/Desktop/School/SeniorDesignTutorial/Instrument-Recognition/Test Data/**/*.wav', recursive=True)]
 fileinfo={}
+<<<<<<< HEAD
 i=0;
 os.chdir("C:/Users/John Dwyer/Desktop/School/SeniorDesignTutorial/Instrument-Recognition/Test Data")
 for file in os.listdir("C:/Users/John Dwyer/Desktop/School/SeniorDesignTutorial/Instrument-Recognition/Test Data"):
+=======
+i=0
+os.chdir("Input directory of test files, onlu used if not in same directory as this parser.")
+for file in os.listdir("Path to test data"):
+>>>>>>> New models using ln features, with Nsynth and loss functionality
     if file.endswith(".txt"):
         with open(file) as myfile:
             # print(myfile.read())
@@ -42,7 +48,7 @@ for file in os.listdir("C:/Users/John Dwyer/Desktop/School/SeniorDesignTutorial/
                 if 'dru' in line:
                     fileparams[12] = 1
             fileinfo[names[i]]=fileparams
-            i=i+1;
+            i=i+1
 
 # Simple pickle, not sure what the end goal with this is but I can change it up to what we need
 pickle_out=open("datadict.pickle","wb")
