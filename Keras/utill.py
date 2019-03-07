@@ -1,5 +1,5 @@
 import numpy as np
-import glob, os
+import glob, os, pickle
 from pathlib import Path
 import librosa
 import scipy
@@ -174,3 +174,120 @@ def read_npz_folder(filedir):
     return X, y
     
 
+def test_labels_IRMAS(folderpath):
+    names = [os.path.basename(x) for x in glob.glob(folderpath + '/**/*.wav', recursive=True)]
+    fileinfo={}
+    i=0;
+    os.chdir(folderpath)
+    for file in os.listdir(folderpath):
+        if file.endswith(".txt"):
+            with open(file) as myfile:
+                # print(myfile.read())
+                # cel cla flu gac gel org pia sax tru vio voi nod dru
+                fileparams = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                testparams = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                for line in myfile.readlines():
+                    if 'cel' in line:
+                        fileparams[0] = 1
+                    if 'cla' in line:
+                        if fileparams != testparams:
+                            continue
+                        fileparams[1] = 1
+                    if 'flu' in line:
+                        fileparams[2] = 1
+                    if 'gac' in line:
+                        fileparams[3] = 1
+                    if 'gel' in line:
+                        fileparams[4] = 1
+                    if 'org' in line:
+                        fileparams[5] = 1
+                    if 'pia' in line:
+                        fileparams[6] = 1
+                    if 'sax' in line:
+                        fileparams[7] = 1
+                    if 'tru' in line:
+                        fileparams[8] = 1
+                    if 'vio' in line:
+                        fileparams[9] = 1
+                    if 'voi' in line:
+                        fileparams[10] = 1
+                    if 'nod' in line:
+                        fileparams[11] = 1
+                    if 'dru' in line:
+                        fileparams[12] = 1
+                fileinfo[names[i]]=fileparams
+                i=i+1;
+
+    # Simple pickle, not sure what the end goal with this is but I can change it up to what we need
+    #pickle_out=open("datadict.pickle","wb")
+    #pickle.dump(fileinfo, pickle_out)
+    #pickle_out.close()
+    #pickle_in=open("datadict.pickle","rb")
+    #example=pickle.load(pickle_in)
+    # Example call to get the dict value of a filename out of a dict
+    #print(example['01 - Chet Baker - Prayer For The Newborn-8.wav'])
+
+    return fileinfo
+
+
+def load_folder_Test(data_path):
+    ## FOR .WAV FILES
+    ## Downsamples tp 22050 and converts stero to mono and only loads 1sec to make dimensions match the paper
+
+    ## Function to load .wav files in a given folder to an array of (data, sample rate) ##
+    # INPUTS:
+    # data_path = string to folder containing files to be loaded
+    # max_count = number of files you wish to load in
+        ## max_count can be used to only load the first "max_count" number of files from a folder,
+        # if max_count == 0 then whole folder will be loaded
+    ## ------------------------------ 
+  
+    samples = []
+    count = 0
+    downsamp = 22050
+    max_count = 0
+    if max_count!= 0: #Load first 'max_count' number of files from folder
+        for file in glob.glob(os.path.join(data_path,'*.wav')):
+            if count < max_count:
+                temp,sr = librosa.core.load(file,sr = downsamp,mono = True) # downsample to 22050 and make mono (default)
+                # temp = librosa.util.fix_length(temp,2*sr);
+                samples.append([temp,sr])
+                # shutil.move(file,done_folder)
+                count+=1
+                
+    else:
+    #load whole folder
+         for file in glob.glob(os.path.join(data_path,'*.wav')):
+                temp,sr = librosa.core.load(file,sr = downsamp,mono = True) # downsample to 22050 and make mono (idk if the mono right)
+                # temp = librosa.util.fix_length(temp,2*sr);
+                samples.append([temp,sr])
+                
+    return samples
+
+
+def spec_Testing(folderpath,dest_path,labels):
+    ## Function that combines loading, mel spec and compressing for multiple samples 
+    
+    #load folder
+    
+    A_samp =load_folder_Test(folderpath)
+
+    # normaize by dividiving time domain signal by max value
+    A_norm = []
+    
+    for tds in A_samp:
+        tds_max = np.amax(tds[0])
+        A_norm.append([tds[0]/tds_max , tds[1]])
+
+
+    # Generate Mel spectrograms (128)
+    melspecs_A = [mel_spec_it(x[0],x[1]) for x in A_norm]
+
+    #compress magnitudes with natural log
+    ln_melspecs_A = [np.log(abs(h) + np.finfo(np.float64).eps) for h in melspecs_A]
+    
+    # Save to compressed file, file of two arrays 'data' = audio part (mel specs), 'labels' = label array
+    np.savez_compressed(dest_path, data = ln_melspecs_A, labels = labels)
+
+    return np.shape(ln_melspecs_A)
+    
