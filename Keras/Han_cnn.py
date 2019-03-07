@@ -19,164 +19,134 @@ import utill
 import os
 import numpy as np
 
+def Han_model(input_shape=(128,44,1),num_classes=11):
+    model = Sequential()
 
-# def zero_padding(x):
-#         return spatial_2d_padding(x)
+    model.add(Lambda(spatial_2d_padding,input_shape=input_shape))
 
+    model.add(Conv2D(32, kernel_size=(3, 3),
+                    activation='linear',padding = 'same',
+                    strides = 1))
+    model.add(LeakyReLU(alpha = 0.33))
 
-batch_size = 128
-num_classes = 11
-epochs = 24*2
+    model.add(Lambda(spatial_2d_padding))
+    model.add(Conv2D(32, (3, 3), activation='linear',padding = 'same',strides = 1))
+    model.add(LeakyReLU(alpha = 0.33))
 
+    model.add(MaxPooling2D(pool_size=(3, 3),strides = (3,3)))
+    model.add(Dropout(0.25))
 
+    model.add(Lambda(spatial_2d_padding))
+    model.add(Conv2D(64, (3,3),activation='linear',strides = 1,padding = 'same'))
+    model.add(LeakyReLU(alpha = 0.33))
 
+    model.add(Lambda(spatial_2d_padding))
+    model.add(Conv2D(64, (3,3),activation='linear',strides = 1,padding = 'same'))
+    model.add(LeakyReLU(alpha = 0.33))
 
-cwd = os.getcwd()
-# the data, split between train and test sets
-filedir = '\\Keras\\mixed_npz_3219\\'
-# Should build a function for the npzloading of a whole folder
-# cel_set,cel_label=utill.load_npz(cwd+'\\Keras\\IRMAS_npzs\\IRMAS_cel_A.npz')
-# cla_set,cla_label=utill.load_npz(cwd+'\\Keras\\IRMAS_npzs\\IRMAS_cla_A.npz')
-# flu_set,flu_label=utill.load_npz(cwd+'\\Keras\\IRMAS_npzs\\IRMAS_flu_A.npz')
-# gac_set,gac_label=utill.load_npz(cwd+'\\Keras\\IRMAS_npzs\\IRMAS_gac_A.npz')
-# gel_set,gel_label=utill.load_npz(cwd+'\\Keras\\IRMAS_npzs\\IRMAS_gel_A.npz')
-# org_set,org_label=utill.load_npz(cwd+'\\Keras\\IRMAS_npzs\\IRMAS_org_A.npz')
-# pia_set,pia_label=utill.load_npz(cwd+'\\Keras\\IRMAS_npzs\\IRMAS_pia_A.npz')
-# sax_set,sax_label=utill.load_npz(cwd+'\\Keras\\IRMAS_npzs\\IRMAS_sax_A.npz')
+    model.add(MaxPooling2D(pool_size=(3, 3),strides = (3,3)))
+    model.add(Dropout(0.25))
 
-X,y = utill.read_npz_folder(filedir)
+    model.add(Lambda(spatial_2d_padding))
+    model.add(Conv2D(128, (3,3),activation='linear',padding = 'same',strides = 1))
+    model.add(LeakyReLU(alpha = 0.33))
 
-# flu_label = flu_label*7
-# X = np.append(cel_set,[cla_set,flu_set,gac_set,gel_set,org_set,pia_set,sax_set], axis = 0)
-# y = np.append(cel_label, [cla_label,flu_label,gac_label,gel_label,org_label,pia_label,sax_label],axis = 0)
+    model.add(Lambda(spatial_2d_padding))
+    model.add(Conv2D(128, (3,3),activation='linear',padding = 'same',strides = 1))
+    model.add(LeakyReLU(alpha = 0.33))
 
-x_train, x_test, y_train, y_test = \
-        train_test_split(X, y, test_size=.15, random_state=42)
+    model.add(MaxPooling2D(pool_size=(3, 3),strides = (3,3)))
+    model.add(Dropout(0.25))
 
-# if K.image_data_format() == 'channels_first':
-#     x_train = x_train.reshape(x_train.shape[0], 1, img_rows, img_cols)
-#     x_test = x_test.reshape(x_test.shape[0], 1, img_rows, img_cols)
-#     input_shape = (1, img_rows, img_cols)
-# else:
-#     x_train = x_train.reshape(x_train.shape[0], img_rows, img_cols, 1)
-#     x_test = x_test.reshape(x_test.shape[0], img_rows, img_cols, 1)
-#     input_shape = (img_rows, img_cols, 1)
+    model.add(Lambda(spatial_2d_padding))
+    model.add(Conv2D(256, (3,3),activation='linear',padding = 'same',strides = 1))
+    model.add(LeakyReLU(alpha = 0.33))
 
-# input image dimensions
-img_rows, img_cols = x_train.shape[1], x_train.shape[2] # Needs to be set to the dimensions of the Nsynth Data
+    model.add(Lambda(spatial_2d_padding))
+    model.add(Conv2D(256, (3,3),activation='linear',padding = 'same',strides = 1))
+    model.add(LeakyReLU(alpha = 0.33))
 
-x_train = x_train.reshape(x_train.shape[0], img_rows, img_cols, 1)
-x_test = x_test.reshape(x_test.shape[0], img_rows, img_cols, 1)
-input_shape = (img_rows, img_cols, 1)
+    model.add(GlobalMaxPooling2D())
 
-print(y_train.shape)
-x_train = x_train.astype('float32')
-x_test = x_test.astype('float32')
-x_train /= 255 # Test with this and without
-x_test /= 255 # Test with this and without
-print('x_train shape:', x_train.shape)
-print(x_train.shape[0], 'train samples')
-print(x_test.shape[0], 'test samples')
-
-
-print(y_test.shape)
-# input_shape = (img_rows, 43, 1)
-
-model = Sequential()
-
-model.add(Lambda(spatial_2d_padding,input_shape=input_shape))
-
-model.add(Conv2D(32, kernel_size=(3, 3),
-                 activation='linear',padding = 'same',
-                 strides = 1))
-model.add(LeakyReLU(alpha = 0.33))
-
-model.add(Lambda(spatial_2d_padding))
-model.add(Conv2D(32, (3, 3), activation='linear',padding = 'same',strides = 1))
-model.add(LeakyReLU(alpha = 0.33))
-
-model.add(MaxPooling2D(pool_size=(3, 3),strides = (3,3)))
-model.add(Dropout(0.25))
-
-model.add(Lambda(spatial_2d_padding))
-model.add(Conv2D(64, (3,3),activation='linear',strides = 1,padding = 'same'))
-model.add(LeakyReLU(alpha = 0.33))
-
-model.add(Lambda(spatial_2d_padding))
-model.add(Conv2D(64, (3,3),activation='linear',strides = 1,padding = 'same'))
-model.add(LeakyReLU(alpha = 0.33))
-
-model.add(MaxPooling2D(pool_size=(3, 3),strides = (3,3)))
-model.add(Dropout(0.25))
-
-model.add(Lambda(spatial_2d_padding))
-model.add(Conv2D(128, (3,3),activation='linear',padding = 'same',strides = 1))
-model.add(LeakyReLU(alpha = 0.33))
-
-model.add(Lambda(spatial_2d_padding))
-model.add(Conv2D(128, (3,3),activation='linear',padding = 'same',strides = 1))
-model.add(LeakyReLU(alpha = 0.33))
-
-model.add(MaxPooling2D(pool_size=(3, 3),strides = (3,3)))
-model.add(Dropout(0.25))
-
-model.add(Lambda(spatial_2d_padding))
-model.add(Conv2D(256, (3,3),activation='linear',padding = 'same',strides = 1))
-model.add(LeakyReLU(alpha = 0.33))
-
-model.add(Lambda(spatial_2d_padding))
-model.add(Conv2D(256, (3,3),activation='linear',padding = 'same',strides = 1))
-model.add(LeakyReLU(alpha = 0.33))
-
-model.add(GlobalMaxPooling2D())
-
-model.add(Dense(1024, activation='linear'))
-model.add(LeakyReLU(alpha = 0.33))
-model.add(Dropout(0.5))
-model.add(Dense(num_classes, activation='sigmoid'))
-
-
-model.compile(loss=keras.losses.categorical_crossentropy,
-              optimizer=keras.optimizers.Adam(),
-              metrics=['accuracy'])
-
-early_stopping_monitor = EarlyStopping(patience=3)
-
-history=model.fit(x_train, y_train,
-          batch_size=batch_size,
-          epochs=epochs,
-          verbose=1,
-          validation_data=(x_test, y_test),
-          callbacks=[early_stopping_monitor])
-score = model.evaluate(x_test, y_test, verbose=0)
-
-
-print('Test loss:', score[0])
-print('Test accuracy:', score[1])
+    model.add(Dense(1024, activation='linear'))
+    model.add(LeakyReLU(alpha = 0.33))
+    model.add(Dropout(0.5))
+    model.add(Dense(num_classes, activation='sigmoid'))
+    return model
 
 
 
 
-# Plotting of accuracy
-plt.plot(history.history['acc'])
-plt.plot(history.history['val_acc'])
-plt.title('Model accuracy')
-plt.ylabel('Accuracy')
-plt.xlabel('Epoch')
-plt.legend(['Train', 'Test'], loc='upper left')
-plt.show()
-# Plotting of loss
-plt.plot(history.history['loss'])
-plt.plot(history.history['val_loss'])
-plt.title('Model loss')
-plt.ylabel('Loss')
-plt.xlabel('Epoch')
-plt.legend(['Train', 'Test'], loc='upper left')
-plt.show()
+if __name__ == "__main__":
 
-model_json = model.to_json()
-with open("model.json", "w") as json_file:
-    json_file.write(model_json)
-# serialize weights to HDF5
-model.save_weights("model.h5")
-print("Saved model to disk")
+    batch_size = 128
+    num_classes = 11
+    epochs = 24*2
+
+
+
+    # Loading of data
+    cwd = os.getcwd()
+    filedir = '\\Keras\\mixed_npz_3219\\'
+    X,y = utill.read_npz_folder(filedir)
+
+    x_train, x_test, y_train, y_test = \
+            train_test_split(X, y, test_size=.15, random_state=42)
+
+    img_rows, img_cols = x_train.shape[1], x_train.shape[2] # Needs to be set to the dimensions of the Nsynth Data
+
+    x_train = x_train.reshape(x_train.shape[0], img_rows, img_cols, 1)
+    x_test = x_test.reshape(x_test.shape[0], img_rows, img_cols, 1)
+    input_shape = (img_rows, img_cols, 1)
+
+    print(y_train.shape)
+    x_train = x_train.astype('float32')
+    x_test = x_test.astype('float32')
+    x_train /= 255 # Test with this and without
+    x_test /= 255 # Test with this and without
+    print('x_train shape:', x_train.shape)
+    print(x_train.shape[0], 'train samples')
+    print(x_test.shape[0], 'test samples')
+
+
+    print(y_test.shape)
+    
+
+    model= Han_model(input_shape,num_classes)
+
+    model.compile(loss=keras.losses.categorical_crossentropy,
+                optimizer=keras.optimizers.Adam(),
+                metrics=['accuracy'])
+
+    early_stopping_monitor = EarlyStopping(patience=3)
+
+    history=model.fit(x_train, y_train,
+            batch_size=batch_size,
+            epochs=epochs,
+            verbose=1,
+            validation_data=(x_test, y_test),
+            callbacks=[early_stopping_monitor])
+    score = model.evaluate(x_test, y_test, verbose=0)
+
+
+    print('Test loss:', score[0])
+    print('Test accuracy:', score[1])
+
+
+
+
+    # Plotting of accuracy
+    utill.plot_accuracy(history)
+    # Plotting of loss
+    utill.plot_loss(history)
+
+    y_pred = model.predict(y_test)
+
+    utill.plot_confusion_matrix(y_test,y_pred,)
+    
+    model_json = model.to_json()
+    with open("model.json", "w") as json_file:
+        json_file.write(model_json)
+    # serialize weights to HDF5
+    model.save_weights("model.h5")
+    print("Saved model to disk")
