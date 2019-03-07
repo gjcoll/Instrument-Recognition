@@ -1,10 +1,12 @@
 import numpy as np
-import glob, os
+import glob, os, pickle
+from pathlib import Path
 import librosa
 import scipy
 import shutil
 import gzip
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 
 from pathlib import Path
 from sklearn import svm, datasets
@@ -12,6 +14,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
 from sklearn.utils.multiclass import unique_labels
 
+CLASS_NAMES = ['Cello', 'Clarinet', 'Flute', 'Acoustic Guitar', 'Electric Guitar','Organ','Piano','Saxophone','Trumpet','Violin','Voice'] 
 
 
 def load_folder(data_path,max_count,done_folder):
@@ -192,12 +195,139 @@ def read_npz_folder(filedir):
                 print('An error has occured when loading file ', f)    
     return X, y
 
+def test_labels_IRMAS(folderpath):
+    names = [os.path.basename(x) for x in glob.glob(folderpath + '/**/*.wav', recursive=True)]
+    fileinfo={}
+    i=0
+    os.chdir(folderpath)
+    for file in os.listdir(folderpath):
+        if file.endswith(".txt"):
+            with open(file) as myfile:
+                # print(myfile.read())
+                # cel cla flu gac gel org pia sax tru vio voi nod dru
+                fileparams = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                testparams = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                for line in myfile.readlines():
+                    if 'cel' in line:
+                        fileparams[0] = 1
+                    if 'cla' in line:
+                        if fileparams != testparams:
+                            continue
+                        fileparams[1] = 1
+                    if 'flu' in line:
+                        fileparams[2] = 1
+                    if 'gac' in line:
+                        fileparams[3] = 1
+                    if 'gel' in line:
+                        fileparams[4] = 1
+                    if 'org' in line:
+                        fileparams[5] = 1
+                    if 'pia' in line:
+                        fileparams[6] = 1
+                    if 'sax' in line:
+                        fileparams[7] = 1
+                    if 'tru' in line:
+                        fileparams[8] = 1
+                    if 'vio' in line:
+                        fileparams[9] = 1
+                    if 'voi' in line:
+                        fileparams[10] = 1
+                    if 'nod' in line:
+                        fileparams[11] = 1
+                    if 'dru' in line:
+                        fileparams[12] = 1
+                fileinfo[names[i]]=fileparams
+                i=i+1
+
+    # Simple pickle, not sure what the end goal with this is but I can change it up to what we need
+    #pickle_out=open("datadict.pickle","wb")
+    #pickle.dump(fileinfo, pickle_out)
+    #pickle_out.close()
+    #pickle_in=open("datadict.pickle","rb")
+    #example=pickle.load(pickle_in)
+    # Example call to get the dict value of a filename out of a dict
+    #print(example['01 - Chet Baker - Prayer For The Newborn-8.wav'])
+
+    return fileinfo
+
+
+def load_folder_Test(data_path):
+    ## FOR .WAV FILES
+    ## Downsamples tp 22050 and converts stero to mono and only loads 1sec to make dimensions match the paper
+
+    ## Function to load .wav files in a given folder to an array of (data, sample rate) ##
+    # INPUTS:
+    # data_path = string to folder containing files to be loaded
+    # max_count = number of files you wish to load in
+        ## max_count can be used to only load the first "max_count" number of files from a folder,
+        # if max_count == 0 then whole folder will be loaded
+    ## ------------------------------ 
+  
+    samples = []
+    count = 0
+    downsamp = 22050
+    max_count = 0
+    if max_count!= 0: #Load first 'max_count' number of files from folder
+        for file in glob.glob(os.path.join(data_path,'*.wav')):
+            if count < max_count:
+                temp,sr = librosa.core.load(file,sr = downsamp,mono = True) # downsample to 22050 and make mono (default)
+                # temp = librosa.util.fix_length(temp,2*sr);
+                samples.append([temp,sr])
+                # shutil.move(file,done_folder)
+                count+=1
+                
+    else:
+    #load whole folder
+         for file in glob.glob(os.path.join(data_path,'*.wav')):
+                temp,sr = librosa.core.load(file,sr = downsamp,mono = True) # downsample to 22050 and make mono (idk if the mono right)
+                # temp = librosa.util.fix_length(temp,2*sr);
+                samples.append([temp,sr])
+                
+    return samples
+
+
+def spec_Testing(folderpath,dest_path,labels):
+    ## Function that combines loading, mel spec and compressing for multiple samples 
+    
+    #load folder
+    
+    A_samp =load_folder_Test(folderpath)
+
+    # normaize by dividiving time domain signal by max value
+    A_norm = []
+    
+    for tds in A_samp:
+        tds_max = np.amax(tds[0])
+        A_norm.append([tds[0]/tds_max , tds[1]])
+
+
+    # Generate Mel spectrograms (128)
+    melspecs_A = [mel_spec_it(x[0],x[1]) for x in A_norm]
+
+    #compress magnitudes with natural log
+    ln_melspecs_A = [np.log(abs(h) + np.finfo(np.float64).eps) for h in melspecs_A]
+    
+    # Save to compressed file, file of two arrays 'data' = audio part (mel specs), 'labels' = label array
+    np.savez_compressed(dest_path, data = ln_melspecs_A, labels = labels)
+
+    return np.shape(ln_melspecs_A)
+    
+def mutilabel2single(mutli_label, labels=CLASS_NAMES):
+    # A function that returns single labels for use of confusion matrix
+    single_label = [None]*len(mutli_label)
+    i=0
+    for label in mutli_label:
+        single_label[i] = labels[int(np.argmax(label))]
+        i+=1
+    return single_label
+
+
 
 ## Analysis 
 def plot_confusion_matrix(y_true, y_pred, classes,
                           normalize=False,
                           title=None,
-                          cmap=plt.cm.Blues):
+                          cmap= cm.Blues):
     """
     This function prints and plots the confusion matrix.
     Normalization can be applied by setting `normalize=True`.
@@ -209,23 +339,22 @@ def plot_confusion_matrix(y_true, y_pred, classes,
             title = 'Confusion matrix, without normalization'
 
     # Compute confusion matrix
-    cm = confusion_matrix(y_true, y_pred)
+    cmat = confusion_matrix(y_true, y_pred,labels = classes)
     # Only use the labels that appear in the data
-    classes = classes[unique_labels(y_true, y_pred)]
     if normalize:
-        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+        cmat = cmat.astype('float') / cmat.sum(axis=1)[:, np.newaxis]
         print("Normalized confusion matrix")
     else:
         print('Confusion matrix, without normalization')
 
-    print(cm)
+    print(cmat)
 
     fig, ax = plt.subplots()
-    im = ax.imshow(cm, interpolation='nearest', cmap=cmap)
+    im = ax.imshow(cmat, interpolation='nearest', cmap=cmap)
     ax.figure.colorbar(im, ax=ax)
     # We want to show all ticks...
-    ax.set(xticks=np.arange(cm.shape[1]),
-           yticks=np.arange(cm.shape[0]),
+    ax.set(xticks=np.arange(cmat.shape[1]),
+           yticks=np.arange(cmat.shape[0]),
            # ... and label them with the respective list entries
            xticklabels=classes, yticklabels=classes,
            title=title,
@@ -238,16 +367,19 @@ def plot_confusion_matrix(y_true, y_pred, classes,
 
     # Loop over data dimensions and create text annotations.
     fmt = '.2f' if normalize else 'd'
-    thresh = cm.max() / 2.
-    for i in range(cm.shape[0]):
-        for j in range(cm.shape[1]):
-            ax.text(j, i, format(cm[i, j], fmt),
+    thresh = cmat.max() / 2.
+    for i in range(cmat.shape[0]):
+        for j in range(cmat.shape[1]):
+            ax.text(j, i, format(cmat[i, j], fmt),
                     ha="center", va="center",
-                    color="white" if cm[i, j] > thresh else "black")
+                    color="white" if cmat[i, j] > thresh else "black")
     fig.tight_layout()
+    plt.show()
     return ax
 
 def plot_accuracy(history, model_name=None):
+    if model_name is None:
+        model_name = ''
     plt.plot(history.history['acc'])
     plt.plot(history.history['val_acc'])
     plt.title('Model accuracy: ' + model_name)
@@ -257,9 +389,11 @@ def plot_accuracy(history, model_name=None):
     plt.show()
 
 def plot_loss(history, model_name=None):
+    if model_name is None:
+        model_name = ''
     plt.plot(history.history['loss'])
     plt.plot(history.history['val_loss'])
-    plt.title('Model loss')
+    plt.title('Model loss: '+ model_name)
     plt.ylabel('Loss')
     plt.xlabel('Epoch')
     plt.legend(['Train', 'Test'], loc='upper left')
