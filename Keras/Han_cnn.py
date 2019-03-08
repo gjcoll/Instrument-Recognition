@@ -20,8 +20,8 @@ import os
 import numpy as np
 
 def Han_model(input_shape=(128,44,1),num_classes=11):
-    model = Sequential()
 
+    model = Sequential()
     model.add(Lambda(spatial_2d_padding,input_shape=input_shape))
 
     model.add(Conv2D(32, kernel_size=(3, 3),
@@ -87,7 +87,7 @@ if __name__ == "__main__":
 
     # Loading of data
     cwd = os.getcwd()
-    filedir = '\\Keras\\mixed_npz_3219\\'
+    filedir = '\\Keras\\IRMAS_npzs_C\\'
     X,y = utill.read_npz_folder(filedir)
 
     x_train, x_test, y_train, y_test = \
@@ -107,9 +107,10 @@ if __name__ == "__main__":
 
     
     score=[0,0]
-    model= Han_model(input_shape,num_classes)
-    while score[1] < 0.68: 
+    
+    while score[1] < 0.55: 
         
+        model= Han_model(input_shape,num_classes)
 
         model.compile(loss=keras.losses.categorical_crossentropy,
                     optimizer=keras.optimizers.Adam(),
