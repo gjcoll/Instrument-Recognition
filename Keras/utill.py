@@ -5,6 +5,16 @@ import librosa
 import scipy
 import shutil
 import gzip
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+
+from pathlib import Path
+from sklearn import svm, datasets
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix
+from sklearn.utils.multiclass import unique_labels
+
+CLASS_NAMES = ['Cello', 'Clarinet', 'Flute', 'Acoustic Guitar', 'Electric Guitar','Organ','Piano','Saxophone','Trumpet','Violin','Voice'] 
 
 
 def load_folder(data_path,max_count,done_folder):
@@ -185,12 +195,10 @@ def read_npz_folder(filedir):
                 print('An error has occured when loading file ', f)    
     return X, y
 
-
-
 def test_labels_IRMAS(folderpath):
     names = [os.path.basename(x) for x in glob.glob(folderpath + '/**/*.wav', recursive=True)]
     fileinfo={}
-    i=0;
+    i=0
     os.chdir(folderpath)
     for file in os.listdir(folderpath):
         if file.endswith(".txt"):
@@ -229,7 +237,7 @@ def test_labels_IRMAS(folderpath):
                     if 'dru' in line:
                         fileparams[12] = 1
                 fileinfo[names[i]]=fileparams
-                i=i+1;
+                i=i+1
 
     # Simple pickle, not sure what the end goal with this is but I can change it up to what we need
     #pickle_out=open("datadict.pickle","wb")
@@ -304,3 +312,90 @@ def spec_Testing(folderpath,dest_path,labels):
     
     return melspecs
     
+def mutilabel2single(mutli_label, labels=CLASS_NAMES):
+    # A function that returns single labels for use of confusion matrix
+    single_label = [None]*len(mutli_label)
+    i=0
+    for label in mutli_label:
+        single_label[i] = labels[int(np.argmax(label))]
+        i+=1
+    return single_label
+
+
+
+## Analysis 
+def plot_confusion_matrix(y_true, y_pred, classes,
+                          normalize=False,
+                          title=None,
+                          cmap= cm.Blues):
+    """
+    This function prints and plots the confusion matrix.
+    Normalization can be applied by setting `normalize=True`.
+    """
+    if not title:
+        if normalize:
+            title = 'Normalized confusion matrix'
+        else:
+            title = 'Confusion matrix, without normalization'
+
+    # Compute confusion matrix
+    cmat = confusion_matrix(y_true, y_pred,labels = classes)
+    # Only use the labels that appear in the data
+    if normalize:
+        cmat = cmat.astype('float') / cmat.sum(axis=1)[:, np.newaxis]
+        print("Normalized confusion matrix")
+    else:
+        print('Confusion matrix, without normalization')
+
+    print(cmat)
+
+    fig, ax = plt.subplots()
+    im = ax.imshow(cmat, interpolation='nearest', cmap=cmap)
+    ax.figure.colorbar(im, ax=ax)
+    # We want to show all ticks...
+    ax.set(xticks=np.arange(cmat.shape[1]),
+           yticks=np.arange(cmat.shape[0]),
+           # ... and label them with the respective list entries
+           xticklabels=classes, yticklabels=classes,
+           title=title,
+           ylabel='True label',
+           xlabel='Predicted label')
+
+    # Rotate the tick labels and set their alignment.
+    plt.setp(ax.get_xticklabels(), rotation=45, ha="right",
+             rotation_mode="anchor")
+
+    # Loop over data dimensions and create text annotations.
+    fmt = '.2f' if normalize else 'd'
+    thresh = cmat.max() / 2.
+    for i in range(cmat.shape[0]):
+        for j in range(cmat.shape[1]):
+            ax.text(j, i, format(cmat[i, j], fmt),
+                    ha="center", va="center",
+                    color="white" if cmat[i, j] > thresh else "black")
+    fig.tight_layout()
+    plt.show()
+    return ax
+
+def plot_accuracy(history, model_name=None):
+    if model_name is None:
+        model_name = ''
+    plt.plot(history.history['acc'])
+    plt.plot(history.history['val_acc'])
+    plt.title('Model accuracy: ' + model_name)
+    plt.ylabel('Accuracy')
+    plt.xlabel('Epoch')
+    plt.legend(['Train', 'Test'], loc='upper left')
+    plt.show()
+
+def plot_loss(history, model_name=None):
+    if model_name is None:
+        model_name = ''
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.title('Model loss: '+ model_name)
+    plt.ylabel('Loss')
+    plt.xlabel('Epoch')
+    plt.legend(['Train', 'Test'], loc='upper left')
+    plt.show()
+
