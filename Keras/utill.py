@@ -243,7 +243,7 @@ def test_labels_IRMAS(folderpath):
     return fileinfo
 
 
-def load_folder_Test(data_path):
+def load_folder_Test(data_path,max_count = 0):
     ## FOR .WAV FILES
     ## Downsamples tp 22050 and converts stero to mono and only loads 1sec to make dimensions match the paper
 
@@ -258,7 +258,7 @@ def load_folder_Test(data_path):
     samples = []
     count = 0
     downsamp = 22050
-    max_count = 0
+   
     if max_count!= 0: #Load first 'max_count' number of files from folder
         for file in glob.glob(os.path.join(data_path,'*.wav')):
             if count < max_count:
@@ -295,12 +295,12 @@ def spec_Testing(folderpath,dest_path,labels):
 
     # Generate Mel spectrograms (128)
     melspecs_A = [mel_spec_it(x[0],x[1]) for x in A_norm]
-
-    #compress magnitudes with natural log
+    
     ln_melspecs_A = [np.log(abs(h) + np.finfo(np.float64).eps) for h in melspecs_A]
     
+    melspecs = [arr.tolist() for arr in ln_melspecs_A]
     # Save to compressed file, file of two arrays 'data' = audio part (mel specs), 'labels' = label array
-    np.savez_compressed(dest_path, data = ln_melspecs_A, labels = labels)
-
-    return np.shape(ln_melspecs_A)
+    np.savez_compressed(dest_path, data = melspecs, labels = labels)
+    
+    return melspecs
     
