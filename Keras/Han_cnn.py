@@ -87,7 +87,7 @@ if __name__ == "__main__":
 
     # Loading of data
     cwd = os.getcwd()
-    filedir = '\\Keras\\IRMAS_npzs_C\\'
+    filedir = '\\Keras\\mixed_npz_3219\\'
     X,y = utill.read_npz_folder(filedir)
 
     x_train, x_test, y_train, y_test = \
