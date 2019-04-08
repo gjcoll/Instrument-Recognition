@@ -251,7 +251,7 @@ def test_labels_IRMAS(folderpath):
     return fileinfo
 
 
-def load_folder_Test(data_path,max_count = 0):
+def load_folder_Test(data_path):
     ## FOR .WAV FILES
     ## Downsamples tp 22050 and converts stero to mono and only loads 1sec to make dimensions match the paper
 
@@ -264,53 +264,43 @@ def load_folder_Test(data_path,max_count = 0):
     ## ------------------------------ 
   
     samples = []
-    count = 0
     downsamp = 22050
-   
-    if max_count!= 0: #Load first 'max_count' number of files from folder
-        for file in glob.glob(os.path.join(data_path,'*.wav')):
-            if count < max_count:
-                temp,sr = librosa.core.load(file,sr = downsamp,mono = True) # downsample to 22050 and make mono (default)
-                # temp = librosa.util.fix_length(temp,2*sr);
-                samples.append([temp,sr])
-                # shutil.move(file,done_folder)
-                count+=1
-                
-    else:
-    #load whole folder
-         for file in glob.glob(os.path.join(data_path,'*.wav')):
-                temp,sr = librosa.core.load(file,sr = downsamp,mono = True) # downsample to 22050 and make mono (idk if the mono right)
-                # temp = librosa.util.fix_length(temp,2*sr);
-                samples.append([temp,sr])
+    for file in glob.glob(os.path.join(data_path,'*.wav')):
+        temp,sr = librosa.core.load(file,sr = downsamp,mono = True) # downsample to 22050 and make mono (default)
+        samples.append([temp,sr])
+              
                 
     return samples
 
 
-def spec_Testing(folderpath,dest_path,labels):
+def spec_Testing(fpath,filename,dest_path,label):
     ## Function that combines loading, mel spec and compressing for multiple samples 
     
     #load folder
     
-    A_samp =load_folder_Test(folderpath)
+    A_samp,sr = librosa.core.load(fpath + '\\' + filename,sr = 22050, mono = True) # downsample to 22050 and make mono (default)
+    # label_all = test_labels_IRMAS(folderpath)
 
     # normaize by dividiving time domain signal by max value
-    A_norm = []
-    
-    for tds in A_samp:
-        tds_max = np.amax(tds[0])
-        A_norm.append([tds[0]/tds_max , tds[1]])
+    # count = 0
+    # for song in A_samp:
+    #     A_norm = []
+    #     tds_max = np.amax(song[0])
+    #     A_norm = [song[0] / tds_max , song[1]]
+    #     melspec = mel_spec_it(A_norm[0],A_norm[1])
+    #     ln_mel = np.log(abs(melspec) + np.finfo(np.float64).eps)
 
+    #     dpath = dest_path + '_' + str(count) + '.npz'
+    #     np.savez_compressed(dpath, data = ln_mel, labels = label_all[count])
+    #     count = count + 1
+    A_norm = A_samp / (np.amax(A_samp))
+    mels = mel_spec_it(A_norm,sr)
+    ln_mels = np.log(abs(mels)+np.finfo(np.float64).eps)
+    np.savez_compressed(dest_path, data = ln_mels,  labels = label )
 
-    # Generate Mel spectrograms (128)
-    melspecs_A = [mel_spec_it(x[0],x[1]) for x in A_norm]
-    
-    ln_melspecs_A = [np.log(abs(h) + np.finfo(np.float64).eps) for h in melspecs_A]
-    
-    melspecs = [arr.tolist() for arr in ln_melspecs_A]
-    # Save to compressed file, file of two arrays 'data' = audio part (mel specs), 'labels' = label array
-    np.savez_compressed(dest_path, data = melspecs, labels = labels)
-    
-    return melspecs
+   
+
+    return ln_mels
     
 def mutilabel2single(mutli_label, labels=CLASS_NAMES):
     # A function that returns single labels for use of confusion matrix

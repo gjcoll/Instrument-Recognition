@@ -1,17 +1,14 @@
 import glob, os, pickle
 
 
-names = [os.path.basename(x) for x in glob.glob('C:/Users/John Dwyer/Desktop/School/SeniorDesignTutorial/Instrument-Recognition/Test Data/**/*.wav', recursive=True)]
+names = [os.path.basename(x) for x in glob.glob('D:\\SD Project\\IRMAS\\IRMAS-TestingData-Part1\\IRMAS-TestingData-Part1\\Part1**/*.wav', recursive=True)]
 fileinfo={}
-<<<<<<< HEAD
 i=0;
-os.chdir("C:/Users/John Dwyer/Desktop/School/SeniorDesignTutorial/Instrument-Recognition/Test Data")
-for file in os.listdir("C:/Users/John Dwyer/Desktop/School/SeniorDesignTutorial/Instrument-Recognition/Test Data"):
-=======
-i=0
-os.chdir("Input directory of test files, onlu used if not in same directory as this parser.")
-for file in os.listdir("Path to test data"):
->>>>>>> New models using ln features, with Nsynth and loss functionality
+os.chdir("D:\\SD Project\\IRMAS\\IRMAS-TestingData-Part1\\IRMAS-TestingData-Part1\\Part1")
+# for file in os.listdir("D:\\SD Project\\IRMAS\\IRMAS-TestingData-Part1\\IRMAS-TestingData-Part1\\Part1"):
+#     i=0
+#     os.chdir("Input directory of test files, onlu used if not in same directory as this parser.")
+for file in os.listdir("D:\\SD Project\\IRMAS\\IRMAS-TestingData-Part1\\IRMAS-TestingData-Part1\\Part1"):
     if file.endswith(".txt"):
         with open(file) as myfile:
             # print(myfile.read())
@@ -51,10 +48,10 @@ for file in os.listdir("Path to test data"):
             i=i+1
 
 # Simple pickle, not sure what the end goal with this is but I can change it up to what we need
-pickle_out=open("datadict.pickle","wb")
+pickle_out=open("C:\\Users\\anna_\\OneDrive\\Documents\\GitHub\\Instrument-Recognition\\Keras\\datadict.pickle","wb")
 pickle.dump(fileinfo, pickle_out)
 pickle_out.close()
-pickle_in=open("datadict.pickle","rb")
+pickle_in=open("C:\\Users\\anna_\\OneDrive\\Documents\\GitHub\\Instrument-Recognition\\Keras\\datadict.pickle","rb")
 example=pickle.load(pickle_in)
 # Example call to get the dict value of a filename out of a dict
 print(example['01 - Chet Baker - Prayer For The Newborn-8.wav'])

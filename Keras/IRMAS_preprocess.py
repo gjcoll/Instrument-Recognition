@@ -10,8 +10,8 @@ from utill import load_folder_IRMAS, mel_spec_it,spec_multiple
 
 #['cel','cla','flu','gac','gel','org','pia','sax','tru','vio','voi']
 #load in IRMAS
-classname = 'voi'
-label = [0,0,0,0,0,0,0,0,0,0,1] # define label 
+classname = 'org'
+label = [0,0,0,0,0,1,0,0,0,0,0] # define label 
 #count number of files in folder
 source_path = 'D:\\SD Project\\IRMAS\\IRMAS-TrainingData\\IRMAS-TrainingData\\' + classname
 num_files = len(os.listdir(source_path))
