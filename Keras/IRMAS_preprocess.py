@@ -10,22 +10,22 @@ from utill import load_folder_IRMAS, mel_spec_it,spec_multiple
 
 #['cel','cla','flu','gac','gel','org','pia','sax','tru','vio','voi']
 #load in IRMAS
-classname = 'org'
-label = [0,0,0,0,0,1,0,0,0,0,0] # define label 
+classname = 'voi'
+label = [0,0,0,0,0,0,0,0,0,0,1] # define label 
 #count number of files in folder
 source_path = 'D:\\SD Project\\IRMAS\\IRMAS-TrainingData\\IRMAS-TrainingData\\' + classname
 num_files = len(os.listdir(source_path))
 
 #run 2000, change letter in dest_folder path
 df_path = 'D:\\SD Project\\IRMAS\\IRMAS-TrainingData\\IRMAS_dfs\\' + classname + '_df'
-compress_path = 'D:\\SD Project\\IRMAS\\IRMAS-TrainingData\\IRMAS_Compressed\\IRMAS_' + classname + '_'
+compress_path = 'D:\\SD Project\\IRMAS\\IRMAS-TrainingData\\IRMAS_Compressed\\train_FULL\\IRMAS_' + classname + '_'
 # letter = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-letter = 'CDEFGHIJKLMNOP' # manually Change starting letter if partially through a file
+letter = 'FULL' # manually Change starting letter if partially through a file
 i = 0 # index for letters
 
 num_files = len(os.listdir(source_path)) #check how many files
-ltr = letter[i]
-spec_multiple(source_path,(compress_path + ltr + '.npz'),df_path,label,max_count = num_files)
+# ltr = letter[i]
+spec_multiple(source_path,(compress_path + letter + '.npz'),df_path,label,max_count = num_files)
 
 
 # while num_files > 0: #while there are still files in the folder
