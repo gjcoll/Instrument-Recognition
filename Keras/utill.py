@@ -173,7 +173,7 @@ def get_npz_filenames(filedir):
     # roots = the root directory
     # npz_files = generator object within root containing npz_files
     cw = os.getcwd()
-    for roots, dirs,files in os.walk(cw + filedir):
+    for roots, dirs,files in os.walk(os.path.join(cw, filedir)):
         npz_files = (f for f in files)
         return roots, npz_files
 
@@ -194,6 +194,15 @@ def read_npz_folder(filedir):
             except:
                 print('An error has occured when loading file ', f)    
     return X, y
+
+def read_test_npz_folder(filedir):
+    root, files = get_npz_filenames(filedir)
+    X,y = [],[]
+    for f in files:
+        data,label = load_npz(os.path.join(root,f))
+        X.append(data)
+        y.append(label)
+    return X,y
 
 def test_labels_IRMAS(folderpath):
     names = [os.path.basename(x) for x in glob.glob(folderpath + '/**/*.wav', recursive=True)]

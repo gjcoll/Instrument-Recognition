@@ -55,13 +55,15 @@ def train_untill(model_func, training_data, validation_data, input_shape, num_cl
 def train_model(model_func, training_data_dir: str, additional_data: list = None):
     
 
-    X, y  = utill.read_npz_folder(filedir) 
+    X, y  = utill.read_npz_folder(training_data_dir) 
     x_train, x_val, y_train, y_val = \
-            train_test_split(X, y, test_size=.15, random_state=42)
+            train_test_split(X, y, test_size=.15)
 
     if not(additional_data is None):
-        pass
-        ## some function for unpacking a list of datasets
+        for add_data in additional_data:
+            X_add, y_add =utill.read_npz_folder(add_data)
+            x_train=np.append(x_train,X_add,axis = 0)
+            y_train=np.append(y_train,y_add,axis = 0)
 
     img_rows, img_cols = x_train.shape[1], x_train.shape[2] # Needs to be set to the dimensions of the IRMAS dataset
     x_train = x_train.reshape(x_train.shape[0], img_rows, img_cols, 1)
@@ -79,8 +81,8 @@ def train_model(model_func, training_data_dir: str, additional_data: list = None
 if __name__ == "__main__":
     # Loading of data
     cwd = os.getcwd()
-    filedir = '\\Keras\\IRMAS_npzs_C\\'
-    model,history,x_test,y_test = train_model(Han_model,filedir)
+    filedir = 'Keras\\IRMAS_npzs_C\\'
+    model,history,x_test,y_test = train_model(Han_model,filedir,['Keras\\Nsynth\\'])
 
 
     model_name = input('Please enter the name of the model: ')
@@ -108,4 +110,3 @@ if __name__ == "__main__":
         model.save_weights(model_name+"_weights.h5")
         print("Saved model to disk")
 
-    
