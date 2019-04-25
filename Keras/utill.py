@@ -95,7 +95,7 @@ def load_npz_old(npz_file):
     return data_ary
     
 
-def spec_multiple(src_path, dest_path, done_folder, label, max_count = 2000):
+def spec_multiple(src_path, dest_path, done_folder, label, max_count):
     ## Function that combines loading, mel spec and compressing for multiple samples 
     # src_path = samples (.wav) folder
     # dest_path = path for resulting compressed path (.npz)
@@ -148,7 +148,8 @@ def load_folder_IRMAS(data_path,max_count,done_folder):
     if max_count!= 0: #Load first 'max_count' number of files from folder
         for file in glob.glob(os.path.join(data_path,'*.wav')):
             if count < max_count:
-                temp,sr = librosa.core.load(file,sr = downsamp,mono = True,duration = 1) # downsample to 22050 and make mono (default)
+                # temp,sr = librosa.core.load(file,sr = downsamp,mono = True,duration = 1) # downsample to 22050 and make mono (default)
+                temp,sr = librosa.core.load(file,sr = downsamp,mono = True) # downsample to 22050 and make mono (default)
                 # temp = librosa.util.fix_length(temp,2*sr);
                 samples.append([temp,sr])
                 shutil.move(file,done_folder)
@@ -157,7 +158,7 @@ def load_folder_IRMAS(data_path,max_count,done_folder):
     else:
     #load whole folder
          for file in glob.glob(os.path.join(data_path,'*.wav')):
-                temp,sr = librosa.core.load(file,sr = downsamp,mono = True,duration = 1) # downsample to 22050 and make mono (idk if the mono right)
+                temp,sr = librosa.core.load(file,sr = downsamp,mono = True) # downsample to 22050 and make mono (idk if the mono right)
                 # temp = librosa.util.fix_length(temp,2*sr);
                 samples.append([temp,sr])
                 
