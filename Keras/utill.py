@@ -128,6 +128,34 @@ def spec_multiple(src_path, dest_path, done_folder, label, max_count):
 
     return np.shape(ln_melspecs_A)
     
+def train_split_spec(X:np.array,y:np.array,time_split:int = 44):
+    # Splits training and validation data that is longer than a second into 1 second long spec
+    # with the same labels 
+
+    # Inputs:
+    #
+    X_list = []
+    y_list = []
+    if len(X.T) != 44:
+        i = 0
+        while i < len(X.T):
+            if len(X[:,i:].T) < 44:
+                x = X[:,i:]
+                dif = 44 - len(x.T)
+                X_list.append(np.concatenate([x, np.zeros([len(x), dif])], axis = 1))
+                y_list.append(y)
+            else:
+                X_list.append(X[:,i:i+44])
+                y_list.append(y)
+            i += 44
+    else:
+        X_list.append(X)
+        y_list.append(y)
+    
+    return X_list, y_list
+
+
+
 
 
 def load_folder_IRMAS(data_path,max_count,done_folder):
@@ -327,7 +355,8 @@ def mutilabel2single(mutli_label, labels=CLASS_NAMES):
 def plot_confusion_matrix(y_true, y_pred, classes,
                           normalize=False,
                           title=None,
-                          cmap= cm.Blues):
+                          cmap= cm.Blues,
+                          save:bool = False):
     """
     This function prints and plots the confusion matrix.
     Normalization can be applied by setting `normalize=True`.
@@ -375,11 +404,15 @@ def plot_confusion_matrix(y_true, y_pred, classes,
                     color="white" if cmat[i, j] > thresh else "black")
     fig.tight_layout()
     plt.show()
+    if save:
+        cwd=os.getcwd()
+        plt.savefig(os.path.join(cwd, 'Keras\\Model_images', title +'_CM.png'))
     return ax
 
-def plot_accuracy(history, model_name=None):
+def plot_accuracy(history, model_name=None, save:bool = False):
     if model_name is None:
         model_name = ''
+    fig = plt.figure()
     plt.plot(history.history['acc'])
     plt.plot(history.history['val_acc'])
     plt.title('Model accuracy: ' + model_name)
@@ -388,9 +421,14 @@ def plot_accuracy(history, model_name=None):
     plt.legend(['Train', 'Test'], loc='upper left')
     plt.show()
 
-def plot_loss(history, model_name=None):
+    if save:
+        cwd = os.getcwd()
+        fig.savefig(os.path.join(cwd,'Keras\\Model_images',model_name + '_accuracy.png'))
+
+def plot_loss(history, model_name=None, save:bool = False):
     if model_name is None:
         model_name = ''
+    fig=plt.figure()
     plt.plot(history.history['loss'])
     plt.plot(history.history['val_loss'])
     plt.title('Model loss: '+ model_name)
@@ -398,4 +436,9 @@ def plot_loss(history, model_name=None):
     plt.xlabel('Epoch')
     plt.legend(['Train', 'Test'], loc='upper left')
     plt.show()
+
+    if save:
+        cwd = os.getcwd()
+        fig.savefig(os.path.join(cwd,'Keras\\Model_images',model_name + '_loss.png'))
+    
 
