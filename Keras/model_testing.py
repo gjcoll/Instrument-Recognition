@@ -43,16 +43,15 @@ def confusion_matix_testcase():
     y = utill.mutilabel2single(y)
     utill.plot_confusion_matrix(y,y,utill.CLASS_NAMES)
 
-def windowed_predict(model, x_test):
+def windowed_predict(model, x_test, hop_size = 22, seconds = 3):
     results = []
     i = 0 
-    
-    while i+44 < 44*3:
+    while i+44 < 44*seconds:
         x_window = x_test[:,i:i+44]
         x_window = x_window.reshape(1,128, 44, 1)
         result = model.predict(x_window)
-        results.append(result)
-        i += 22
+        results.append(result[0])
+        i += hop_size
     
     # results = np.asarray(results)
     return results
@@ -60,8 +59,8 @@ def windowed_predict(model, x_test):
 def normalize_sum(windowed_results: list, theta=0.5):
     summed = np.sum(windowed_results, axis=0)
     label = summed/summed.max()
-    row,col=label.shape
-    label = label.reshape(col,)
+    # row,col=label.shape
+    # label = label.reshape(col,)
     # Can write an if statment to detect if theta is a list, and then use a zip in list comprehension
     label[label < theta] = 0 
     return label
@@ -162,11 +161,6 @@ def test():
 ####################################################
 # Get this to John
 ####################################################
-def get_demo_data(X_test):
-    windowed_data=[windowed_predict(model,X) for X in X_test]
-    np.save
-    return windowed_data
-
 def save_output(output, filename):
     direct = os.path.join(CWD,'predictions')
     if not os.path.isdir(direct):
@@ -181,10 +175,10 @@ if __name__ == "__main__":
     model = l_model(Han_model,model_weights)
 
     X_test, y_test = utill.read_test_npz_folder('Keras\\IRMAS_testdata\\')
-    predictions = [windowed_predict(model,X) for X in X_test]
-    filename = input('Input a filename for the predictions')
-    if not os.path.isfile(os.path.join(CWD,'predictions',filename+'pkl')):
-        save_output(predictions,filename)
+    # predictions = [windowed_predict(model,X) for X in X_test]
+    # filename = input('Input a filename for the predictions')
+    # if not os.path.isfile(os.path.join(CWD,'predictions',filename+'pkl')):
+    #     save_output(predictions,filename)
 
     y_score = [normalize_sum(windowed_predict(model,X)) for X in X_test]
 
