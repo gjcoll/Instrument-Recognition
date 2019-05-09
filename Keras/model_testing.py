@@ -40,8 +40,6 @@ def confusion_matix_testcase():
     utill.plot_confusion_matrix(y,y,utill.CLASS_NAMES)
 
 def windowed_predict(model, x_test):
-    
-    
     results = []
     i = 0 
     
@@ -157,17 +155,17 @@ def test():
         f1,precision,recall = multiclass_F1(gt,p)
         print("F1: {0:0.2f}  Pr: {1:0.2f}  Re: {2:0.2f}".format(f1,precision,recall))
 
+def get_windowed_prediction():
+    windowed_data=[windowed_predict(model,X) for X in X_test]
+    return windowed_data
+
 if __name__ == "__main__":
     cwd = os.getcwd()
-    model_weights = os.path.join(cwd, 'Keras\\trained_models\\Han_recreate_04-11-2019-01_weights.h5 ')
+    model_weights = os.path.join(cwd, 'Keras\\trained_models\\IRMAS_extended_Nsynth_weights.h5 ')
     model = l_model(Han_model,model_weights)
 
     X_test, y_test = utill.read_test_npz_folder('Keras\\IRMAS_testdata\\')
-
-    start_scoreing = datetime.datetime.now()
     y_score = [normalize_sum(windowed_predict(model,X)) for X in X_test]
-    end_scoreing = datetime.datetime.now() -start_scoreing
-    print(end_scoreing)
 
     F1, precision, recall = multiclass_F1(y_test,y_score)
     print("Micro Scores: \n\tF1: {0:0.2f}  Pr: {1:0.2f}  Re: {2:0.2f}".format(F1,precision,recall))

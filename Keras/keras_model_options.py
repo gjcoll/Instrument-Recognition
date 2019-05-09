@@ -68,3 +68,6 @@ def Han_model(input_shape=(128,44,1),num_classes=11):
     model.add(Dropout(0.5))
     model.add(Dense(num_classes, activation='sigmoid'))
     return model
+
+def Inception_AV4():
+    print(" This is a working area for the inception CNN")
