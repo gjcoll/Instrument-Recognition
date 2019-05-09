@@ -19,21 +19,25 @@ import utill
 import os
 import numpy as np
 import datetime
+import pickle
 
+
+CWD = os.getcwd()
 def l_model(model_func, model_weights_h5):
     
     model = model_func()    
     model.load_weights(model_weights_h5)
     return model
 
+# Not needed in the class system
 def load_weights_testcase():
     ## Load Data ##
-    cwd = os.getcwd()
     model = Han_model()
-    model_weights_h5 = os.path.join(cwd,"\\Models\\model_03032019_0.h5")
+    model_weights_h5 = os.path.join(CWD,"\\Models\\model_03032019_0.h5")
     model.load_weights(model_weights_h5)
     return model
 
+# not needed in the class system
 def confusion_matix_testcase():
     y = np.load('y_true.npy')
     y = utill.mutilabel2single(y)
@@ -53,7 +57,7 @@ def windowed_predict(model, x_test):
     # results = np.asarray(results)
     return results
 
-def normalize_sum(windowed_results, theta=0.5):
+def normalize_sum(windowed_results: list, theta=0.5):
     summed = np.sum(windowed_results, axis=0)
     label = summed/summed.max()
     row,col=label.shape
@@ -118,9 +122,7 @@ def multiclass_F1(Y_test,y_score, average_type = 'micro'):
         recall = tp/(tp+fn)
         F1 = 2 * (precision * recall)/(precision + recall)
 
-    return F1, precision, recall
-
-    
+    return F1, precision, recall    
     
 def get_truepos(Y_test,y_score):
     log_array = np.logical_and(Y_test,y_score)
@@ -146,6 +148,8 @@ def get_falsepos(Y_test,y_score):
         false_pos = log_array.sum()
     return false_pos
 
+
+## This is a test case
 def test():
     gt = np.array([0,0,1,1])
     p1 = np.array([0,0,1,0])
@@ -155,16 +159,33 @@ def test():
         f1,precision,recall = multiclass_F1(gt,p)
         print("F1: {0:0.2f}  Pr: {1:0.2f}  Re: {2:0.2f}".format(f1,precision,recall))
 
-def get_windowed_prediction():
+####################################################
+# Get this to John
+####################################################
+def get_demo_data(X_test):
     windowed_data=[windowed_predict(model,X) for X in X_test]
+    np.save
     return windowed_data
 
+def save_output(output, filename):
+    direct = os.path.join(CWD,'predictions')
+    if not os.path.isdir(direct):
+        os.mkdir(direct)
+    with open(os.path.join(direct,filename+'.pkl'), 'wb') as f:
+        pickle.dump(output, f)
+  
+
 if __name__ == "__main__":
-    cwd = os.getcwd()
-    model_weights = os.path.join(cwd, 'Keras\\trained_models\\IRMAS_extended_Nsynth_weights.h5 ')
+    
+    model_weights = os.path.join(CWD, 'Keras\\trained_models\\IRMAS_extended_Nsynth_weights.h5 ')
     model = l_model(Han_model,model_weights)
 
     X_test, y_test = utill.read_test_npz_folder('Keras\\IRMAS_testdata\\')
+    predictions = [windowed_predict(model,X) for X in X_test]
+    filename = input('Input a filename for the predictions')
+    if not os.path.isfile(os.path.join(CWD,'predictions',filename+'pkl')):
+        save_output(predictions,filename)
+
     y_score = [normalize_sum(windowed_predict(model,X)) for X in X_test]
 
     F1, precision, recall = multiclass_F1(y_test,y_score)
