@@ -19,7 +19,7 @@ from keras_model_options import Han_model
 ###########
 class Model_training():
 
-    def __init__(self,model_func,batch_size = 128,num_classes = 11, max_epochs = 48, patience = 3,min_acc:float = 0.55):
+    def __init__(self,model_func,batch_size = 128,num_classes = 11, max_epochs = 48, patience = 3,min_acc:float = 0.55,multilable = False):
         # model set up
         self.batch_size = batch_size # number of batches per epoch
         self.num_classes = num_classes # number of classes to measure
@@ -29,7 +29,7 @@ class Model_training():
         self.model_func = model_func
         self.patience = patience
         self.min_acc = min_acc
-
+        self.multilable = multilable
 
     def train_untill(self, training_data, validation_data, input_shape):
 
@@ -39,11 +39,15 @@ class Model_training():
 
         while score[1] < self.min_acc: 
             
-            model= self.model_func(input_shape,self.num_classes)
-
-            model.compile(loss=keras.losses.categorical_crossentropy,
-                        optimizer=keras.optimizers.Adam(),
-                        metrics=['accuracy'])
+            model= self.model_func(input_shape,num_classes = self.num_classes)
+            if self.multilable:
+                model.compile(loss=keras.losses.binary_crossentropy,
+                            optimizer=keras.optimizers.Adam(),
+                            metrics=['accuracy'])
+            else:
+                model.compile(loss=keras.losses.categorical_crossentropy,
+                            optimizer=keras.optimizers.Adam(),
+                            metrics=['accuracy'])
 
             early_stopping_monitor = EarlyStopping(patience= self.patience)
 
@@ -60,10 +64,13 @@ class Model_training():
             print('Test accuracy:', score[1])
         return model, history
 
-    def train_model(self, training_data_dir: str, additional_data: list = None):
+    def train_model(self, training_data_dir: str, additional_data: list = None,complex_reader=False):
         
-
-        X, y  = utill.read_npz_folder(training_data_dir)
+        if not complex_reader:
+            X, y  = utill.read_npz_folder(training_data_dir)
+        else:
+            X, y = utill.unpack_npz_folder(training_data_dir)
+            
         X_list = []
         y_list = []
         for xx,yy in zip(X,y):
@@ -72,10 +79,14 @@ class Model_training():
             y_list.append(yy)
 
         X = np.concatenate(X_list)
+        del X_list
         y = np.concatenate(y_list)
+        del y_list
 
         x_train, x_val, y_train, y_val = \
                 train_test_split(X, y, test_size=.15)
+        del X
+        del y
 
         if not(additional_data is None):
             for add_data in additional_data:
@@ -97,9 +108,9 @@ class Model_training():
 if __name__ == "__main__":
     # Loading of data
     cwd = os.getcwd()
-    filedir = 'Keras\\IRMAS_trainingData_full\\'
-    mt_object = Model_training(Han_model,min_acc=0.73)
-    model,history,x_val,y_val = mt_object.train_model(filedir,['Keras\\Nsynth\\']) #['Keras\\Nsynth\\']
+    filedir = 'Keras\\OpenMic_1of4\\'
+    mt_object = Model_training(Han_model,num_classes=20,min_acc=0.73,multilable=True)
+    model,history,x_val,y_val = mt_object.train_model(filedir,complex_reader=True)
 
     answer = input('Would you like to save the model? [y/n]')
     answer=answer.lower()

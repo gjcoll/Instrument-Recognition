@@ -174,13 +174,20 @@ def batch_analysis(y_test, y_score, batch_n = 10):
         macro['precision'].append([precision])
         macro['recall'].append([recall])
     
-    
-    
+    df = pd.DataFrame(columns=['Micro', 'Macro'],index = ['Average F1', 'Average Precision', 'Average Recall', 'F1 Standard Dev'])
+    df_index = df.index
+    for col,dic in zip(df.columns,[micro,macro]):
+        F1_array = np.array(dic['F1'])
+        pre_array = np.array(dic['precision'])
+        rec_arrat = np.array(dic['recall'])
+        df[col][df_index[0]] = np.mean(F1_array)
+        df[col][df_index[1]] = np.mean(pre_array)
+        df[col][df_index[2]] = np.mean(recall)
+        df[col][df_index[3]] = np.std(F1_array)
 
-    return micro,macro
+    print(df)
+    return df
         
-
-
 def save_output(output, filename):
     direct = os.path.join(CWD,'predictions')
     if not os.path.isdir(direct):
@@ -206,20 +213,26 @@ def old_main():
     F1, precision, recall = multiclass_F1(y_test,y_score, average_type='macro')
     print("Macro Scores: \n\tF1: {0:0.2f}  Pr: {1:0.2f}  Re: {2:0.2f}".format(F1,precision,recall))
 
-
-if __name__ == "__main__":
-    
-    model_weights = os.path.join(CWD, 'Keras\\trained_models\\IRMAS_extended_Nsynth_weights.h5 ')
-    model = l_model(Han_model,model_weights)
-
-    X_test, y_test = utill.read_test_npz_folder('Keras\\IRMAS_testdata\\')
-    # predictions = [windowed_predict(model,X) for X in X_test]
-    # filename = input('Input a filename for the predictions')
-    # if not os.path.isfile(os.path.join(CWD,'predictions',filename+'pkl')):
-    #     save_output(predictions,filename)
+def main_model_test(model,testing_dir,filename):
+    X_test, y_test = utill.read_test_npz_folder(testing_dir)
 
     y_score = [normalize_sum(windowed_predict(model,X)) for X in X_test]
-    batch_analysis(y_test,y_score)
+    batch_df = batch_analysis(y_test,y_score)
+    df = pd.DataFrame({'Micro':multiclass_F1(y_test,y_score,average_type='micro'),'Macro':multiclass_F1(y_test,y_score,average_type='macro')},index =['F1','Precision','Recall'])
+    df = pd.concat([batch_df,df])
+    print(df)
+    # set up the ouput file extensions
+    out_dir = os.path.join(CWD,'Keras\\Model_results',filename)
+    df.to_csv(out_dir)
+
+if __name__ == "__main__":
+    model_weight_dir = 'Keras\\trained_models\\Han_recreate_04-11-2019-01_weights.h5'
+    model_weights = os.path.join(CWD, model_weight_dir)
+    model = l_model(Han_model,model_weights)
+    filename = model_weight_dir.split('\\')[-1]
+    filename = filename.split('.')[0] +'.csv'
+    main_model_test(model,'Keras\\IRMAS_testdata\\',filename)
+
 
 
     
