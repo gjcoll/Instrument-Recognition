@@ -288,6 +288,10 @@ def test_labels_IRMAS(folderpath):
 
     return fileinfo
 
+def chunks(alist, n):
+    """Yield successive n-sized chunks from l."""
+    for i in range(0, len(alist), n):
+        yield alist[i:i + n]
 
 def load_folder_Test(data_path):
     ## FOR .WAV FILES

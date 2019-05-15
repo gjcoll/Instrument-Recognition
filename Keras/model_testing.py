@@ -14,6 +14,7 @@ from keras.utils import plot_model
 from IPython.display import SVG, display
 from keras.utils.vis_utils import model_to_dot
 from keras_model_options import Han_model
+import pandas as pd
 import matplotlib.pyplot as plt
 import utill
 import os
@@ -123,7 +124,7 @@ def multiclass_F1(Y_test,y_score, average_type = 'micro'):
 
     return F1, precision, recall    
     
-def get_truepos(Y_test,y_score):
+def get_truepos(Y_test:np.array,y_score:np.array):
     log_array = np.logical_and(Y_test,y_score)
     if len(log_array.shape) == 2:
         true_pos = log_array.sum(axis = 1)
@@ -131,7 +132,7 @@ def get_truepos(Y_test,y_score):
         true_pos = log_array.sum()
     return true_pos
 
-def get_falseneg(Y_test,y_score):
+def get_falseneg(Y_test:np.array,y_score:np.array):
     log_array = np.logical_and(np.logical_not(y_score),Y_test)
     if len(log_array.shape) == 2:
         false_neg = log_array.sum(axis = 1)
@@ -139,7 +140,7 @@ def get_falseneg(Y_test,y_score):
         false_neg = log_array.sum()
     return false_neg
 
-def get_falsepos(Y_test,y_score):
+def get_falsepos(Y_test:np.array,y_score:np.array):
     log_array = np.logical_and(np.logical_not(Y_test),y_score)
     if len(log_array.shape) == 2:
         false_pos = log_array.sum(axis = 1)
@@ -158,19 +159,37 @@ def test():
         f1,precision,recall = multiclass_F1(gt,p)
         print("F1: {0:0.2f}  Pr: {1:0.2f}  Re: {2:0.2f}".format(f1,precision,recall))
 
-####################################################
-# Get this to John
-####################################################
+def batch_analysis(y_test, y_score, batch_n = 10):
+    micro = {'F1' : [], 'precision' : [], 'recall' : []}
+    macro = {'F1' : [], 'precision' : [], 'recall' : []}
+    y_test_c = utill.chunks(y_test,batch_n)
+    y_score_c = utill.chunks(y_score,batch_n)
+    for test,score in zip(y_test_c,y_score_c):
+        F1, precision ,recall = multiclass_F1(test,score, average_type='micro')
+        micro['F1'].append(F1)
+        micro['precision'].append(precision)
+        micro['recall'].append(recall)
+        F1, precision ,recall = multiclass_F1(test,score, average_type='macro')
+        macro['F1'].append(F1)
+        macro['precision'].append([precision])
+        macro['recall'].append([recall])
+    
+    
+    
+
+    return micro,macro
+        
+
+
 def save_output(output, filename):
     direct = os.path.join(CWD,'predictions')
     if not os.path.isdir(direct):
         os.mkdir(direct)
     with open(os.path.join(direct,filename+'.pkl'), 'wb') as f:
         pickle.dump(output, f)
-  
 
-if __name__ == "__main__":
-    
+def old_main():
+
     model_weights = os.path.join(CWD, 'Keras\\trained_models\\IRMAS_extended_Nsynth_weights.h5 ')
     model = l_model(Han_model,model_weights)
 
@@ -186,5 +205,21 @@ if __name__ == "__main__":
     print("Micro Scores: \n\tF1: {0:0.2f}  Pr: {1:0.2f}  Re: {2:0.2f}".format(F1,precision,recall))
     F1, precision, recall = multiclass_F1(y_test,y_score, average_type='macro')
     print("Macro Scores: \n\tF1: {0:0.2f}  Pr: {1:0.2f}  Re: {2:0.2f}".format(F1,precision,recall))
+
+
+if __name__ == "__main__":
+    
+    model_weights = os.path.join(CWD, 'Keras\\trained_models\\IRMAS_extended_Nsynth_weights.h5 ')
+    model = l_model(Han_model,model_weights)
+
+    X_test, y_test = utill.read_test_npz_folder('Keras\\IRMAS_testdata\\')
+    # predictions = [windowed_predict(model,X) for X in X_test]
+    # filename = input('Input a filename for the predictions')
+    # if not os.path.isfile(os.path.join(CWD,'predictions',filename+'pkl')):
+    #     save_output(predictions,filename)
+
+    y_score = [normalize_sum(windowed_predict(model,X)) for X in X_test]
+    batch_analysis(y_test,y_score)
+
 
     
