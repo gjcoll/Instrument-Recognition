@@ -343,6 +343,44 @@ def spec_Testing(fpath,filename,dest_path,label):
    
 
     return ln_mels
+
+def label_convert(input_label, IRMAS_in = True):
+    # IRMAS_in = True : when converting original IRMAS label (1x11 array) to OpenMic (1x20)
+    # IRMAS_in = False : when converting OpenMic or IRMAS to 1x11 array following the IRMAS Instrument classes (only the 11 IRMAS classes will be indicated, all others from openmic will be 0)
+    IRMAS_dict = {0:3, #'cel'
+    1:4, #'cla'
+    2:7, #'flu'
+    3:8, #'gac'
+    4:8, #'gel'
+    5:11,#'org'
+    6:12,#'pia'
+    7:13,#'sax'
+    8:16,#'tru'
+    9:18,#'vio'
+    10:19 #'voi'
+     }
+    OM_dict = {3:0,4:1,7:2,8:3,11:5,12:6,13:7,16:8,18:9,19:10} #all openMic guitars going to gac (8:3) b/c no split in openMic
+    if IRMAS_in == True:
+        out_label = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+        dex = 0
+        for i in input_label:
+            if i == 1:
+                new_ind = IRMAS_dict[dex]
+                out_label[new_ind] = 1
+            dex = dex+1
+    elif IRMAS_in == False:
+        out_label = [0,0,0,0,0,0,0,0,0,0,0]
+        dex = 0
+        for i in input_label:
+            if i == 1:
+                new_ind = OM_dict.get(dex, "Nope")
+                if new_ind != "Nope":
+                    out_label[new_ind] = 1
+            dex = dex+1
+
+    return out_label
+                
+
     
 def mutilabel2single(mutli_label, labels=CLASS_NAMES):
     # A function that returns single labels for use of confusion matrix

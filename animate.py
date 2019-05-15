@@ -2,69 +2,57 @@ import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import numpy as np
-import time
 import matplotlib.animation as animation
-x = [np.linspace(0, 1, num=1000).tolist(), np.concatenate([np.linspace(0, 0.5, num=100, endpoint=False),
-                                                                 np.linspace(0.5, 0, num=900)], axis=0).tolist(),
-         np.concatenate([np.linspace(0, 0.7, num=100, endpoint=False),
-                          np.linspace(0.7, 0, num=900)], axis=0).tolist(),
-         np.concatenate([np.linspace(0, 0.2, num=100, endpoint=False),
-                          np.linspace(0.2, 0, num=900)], axis=0).tolist(),
-         np.concatenate([np.linspace(0, 0.1, num=100, endpoint=False),
-                          np.linspace(0.1, 0, num=900)], axis=0).tolist(),
-         np.concatenate([np.linspace(0, 0.5, num=100, endpoint=False),
-                          np.linspace(0.5, 0, num=900)], axis=0).tolist(),
-         np.concatenate([np.linspace(0, 0.05, num=100, endpoint=False),
-                          np.linspace(0.05, 0, num=900)], axis=0).tolist(),
-         np.concatenate([np.linspace(0, 0.55, num=100, endpoint=False),
-                          np.linspace(0.55, 0, num=900)], axis=0).tolist(),
-         np.concatenate([np.linspace(0, 0.5, num=100, endpoint=False),
-                          np.linspace(0.5, 0, num=900)], axis=0).tolist(),
-         np.concatenate([np.linspace(0, 0.5, num=100, endpoint=False),
-                          np.linspace(0.5, 0, num=900)], axis=0).tolist(),
-         np.concatenate([np.linspace(0, 0.5, num=100, endpoint=False),
-                          np.linspace(0.5, 0, num=900)], axis=0).tolist()]
+import pickle
+
+
+with open('IRMAS_predictions_all.pkl', 'rb') as f:
+    a = pickle.load(f)
+x, b, c, d, e, f, g, u, aa, ab = [], [], [], [], [], [], [], [], [], []
+
+length = len(a[0])
+for i in range(length-1):
+    listobj1 = a[0][i].tolist()
+    listobj2 = a[0][i+1].tolist()
+    for m in range(11):
+        b.append(np.linspace(listobj1[m], listobj2[m], num=5, endpoint=False).tolist())
+    for j in range(11):
+        c.append(b[j][0])
+        d.append(b[j][1])
+        e.append(b[j][2])
+        f.append(b[j][3])
+        g.append(b[j][4])
+        # u.append(b[j][5])
+        # aa.append(b[j][6])
+        # ab.append(b[j][7])
+    x.append(c)
+    x.append(d)
+    x.append(e)
+    x.append(f)
+    x.append(g)
+    # x.append(u)
+    # x.append(aa)
+    # x.append(ab)
+    b, c, d, e, f, g, u, aa, ab = [], [], [], [], [], [], [], [], []
 
 
 def animated_barplot(frame):
-    x = [np.linspace(0, 1, num=1000).tolist(), np.concatenate([np.linspace(0, 0.5, num=100, endpoint=False),
-                                                               np.linspace(0.5, 0, num=900)], axis=0).tolist(),
-         np.concatenate([np.linspace(0, 0.7, num=100, endpoint=False),
-                         np.linspace(0.7, 0, num=900)], axis=0).tolist(),
-         np.concatenate([np.linspace(0, 0.2, num=100, endpoint=False),
-                         np.linspace(0.2, 0, num=900)], axis=0).tolist(),
-         np.concatenate([np.linspace(0, 0.1, num=100, endpoint=False),
-                         np.linspace(0.1, 0, num=900)], axis=0).tolist(),
-         np.concatenate([np.linspace(0, 0.5, num=100, endpoint=False),
-                         np.linspace(0.5, 0, num=900)], axis=0).tolist(),
-         np.concatenate([np.linspace(0, 0.05, num=100, endpoint=False),
-                         np.linspace(0.05, 0, num=900)], axis=0).tolist(),
-         np.concatenate([np.linspace(0, 0.55, num=100, endpoint=False),
-                         np.linspace(0.55, 0, num=900)], axis=0).tolist(),
-         np.concatenate([np.linspace(0, 0.5, num=100, endpoint=False),
-                         np.linspace(0.5, 0, num=900)], axis=0).tolist(),
-         np.concatenate([np.linspace(0, 0.5, num=100, endpoint=False),
-                         np.linspace(0.5, 0, num=900)], axis=0).tolist(),
-         np.concatenate([np.linspace(0, 0.5, num=100, endpoint=False),
-                         np.linspace(0.5, 0, num=900)], axis=0).tolist()]
-    y = [x[0][frame], x[1][frame], x[2][frame], x[3][frame], x[4][frame], x[5][frame], x[6][frame], x[7][frame], x[8][frame], x[9][frame], x[10][frame]]
+    y = [x[frame][0], x[frame][1], x[frame][2], x[frame][3], x[frame][4], x[frame][5], x[frame][6], x[frame][7], x[frame][8], x[frame][9], x[frame][10]]
     for rect, h in zip(rects, y):
         rect.set_height(h)
-    time.sleep(512 / 22050)
     return rects
 
 
 Writer = animation.FFMpegWriter
-writer = Writer(fps=15, metadata=dict(artist='Me'))
+writer = Writer(metadata=dict(artist='Me'))
 N = 11
-y = [x[0][0], x[1][0], x[2][0], x[3][0], x[4][0], x[5][0], x[6][0], x[7][0], x[8][0], x[9][0], x[10][0]]
+y = [x[0][0], x[0][1], x[0][2], x[0][3], x[0][4], x[0][5], x[0][6], x[0][7], x[0][8], x[0][9], x[0][10]]
 fig, ax = plt.subplots()
 rects = plt.bar(range(N), y[0],  align='center')
-frames = 1000
 plt.xlim([-1, 11])
 plt.ylim([0, 1])
 plt.rcParams['animation.ffmpeg_path'] = r'C:\Users\John Dwyer\Downloads\ffmpeg-20190508-06ba478-win64-static\bin\ffmpeg'
-ani = animation.FuncAnimation(fig, animated_barplot, blit=True, interval=0.5, frames=frames, repeat=False)
+ani = animation.FuncAnimation(fig, animated_barplot, blit=True, interval=(23*5),  repeat=False, frames=len(x))
 ani.save('test.mp4', writer=writer)
 
 plt.show()
