@@ -22,17 +22,11 @@ for i in range(length-1):
         e.append(b[j][2])
         f.append(b[j][3])
         g.append(b[j][4])
-        # u.append(b[j][5])
-        # aa.append(b[j][6])
-        # ab.append(b[j][7])
     x.append(c)
     x.append(d)
     x.append(e)
     x.append(f)
     x.append(g)
-    # x.append(u)
-    # x.append(aa)
-    # x.append(ab)
     b, c, d, e, f, g, u, aa, ab = [], [], [], [], [], [], [], [], []
 
 
@@ -49,9 +43,11 @@ N = 11
 y = [x[0][0], x[0][1], x[0][2], x[0][3], x[0][4], x[0][5], x[0][6], x[0][7], x[0][8], x[0][9], x[0][10]]
 fig, ax = plt.subplots()
 rects = plt.bar(range(N), y[0],  align='center')
+xticks = ['Cello', 'Clarinet', 'Flute', 'A. Guitar', 'E. Guitar', 'Organ', 'Piano', 'Sax', 'Trumpet', 'Violin', 'Voice']
+plt.xticks(range(11), xticks, size=8, rotation=45)
 plt.xlim([-1, 11])
 plt.ylim([0, 1])
-plt.rcParams['animation.ffmpeg_path'] = r'C:\Users\John Dwyer\Downloads\ffmpeg-20190508-06ba478-win64-static\bin\ffmpeg'
+plt.rcParams['animation.ffmpeg_path'] = r'PATHTOFFMPEG'
 ani = animation.FuncAnimation(fig, animated_barplot, blit=True, interval=(23*5),  repeat=False, frames=len(x))
 ani.save('test.mp4', writer=writer)
 
