@@ -24,6 +24,9 @@ import pickle
 
 
 CWD = os.getcwd()
+if CWD.split('\\')[-1] != 'Keras':
+    CWD = os.path.join(CWD,'Keras')
+
 def l_model(model_func, model_weights_h5):
     
     model = model_func()    
@@ -47,7 +50,7 @@ def confusion_matix_testcase():
 def windowed_predict(model, x_test, hop_size = 22, seconds = 3):
     results = []
     i = 0 
-    while i+44 < 44*seconds:
+    while i < 44*seconds - hop_size:
         x_window = x_test[:,i:i+44]
         x_window = x_window.reshape(1,128, 44, 1)
         result = model.predict(x_window)
@@ -185,7 +188,6 @@ def batch_analysis(y_test, y_score, batch_n = 10):
         df[col][df_index[2]] = np.mean(recall)
         df[col][df_index[3]] = np.std(F1_array)
 
-    print(df)
     return df
         
 def save_output(output, filename):
@@ -197,10 +199,10 @@ def save_output(output, filename):
 
 def old_main():
 
-    model_weights = os.path.join(CWD, 'Keras\\trained_models\\IRMAS_extended_Nsynth_weights.h5 ')
+    model_weights = os.path.join(CWD, 'trained_models\\IRMAS_extended_Nsynth_weights.h5 ')
     model = l_model(Han_model,model_weights)
 
-    X_test, y_test = utill.read_test_npz_folder('Keras\\IRMAS_testdata\\')
+    X_test, y_test = utill.read_test_npz_folder('IRMAS_testdata\\')
     # predictions = [windowed_predict(model,X) for X in X_test]
     # filename = input('Input a filename for the predictions')
     # if not os.path.isfile(os.path.join(CWD,'predictions',filename+'pkl')):
@@ -213,7 +215,7 @@ def old_main():
     F1, precision, recall = multiclass_F1(y_test,y_score, average_type='macro')
     print("Macro Scores: \n\tF1: {0:0.2f}  Pr: {1:0.2f}  Re: {2:0.2f}".format(F1,precision,recall))
 
-def main_model_test(model,testing_dir,filename):
+def main_model_test(model,testing_dir,filename=None):
     X_test, y_test = utill.read_test_npz_folder(testing_dir)
 
     y_score = [normalize_sum(windowed_predict(model,X)) for X in X_test]
@@ -222,16 +224,17 @@ def main_model_test(model,testing_dir,filename):
     df = pd.concat([batch_df,df])
     print(df)
     # set up the ouput file extensions
-    out_dir = os.path.join(CWD,'Keras\\Model_results',filename)
-    df.to_csv(out_dir)
+    if not (filename is None):
+        out_dir = os.path.join(CWD,'Model_results',filename)
+        df.to_csv(out_dir)
 
 if __name__ == "__main__":
-    model_weight_dir = 'Keras\\trained_models\\Han_recreate_04-11-2019-01_weights.h5'
+    model_weight_dir = 'trained_models\\IRMAS_extended_aug_weights.h5'
     model_weights = os.path.join(CWD, model_weight_dir)
     model = l_model(Han_model,model_weights)
     filename = model_weight_dir.split('\\')[-1]
     filename = filename.split('.')[0] +'.csv'
-    main_model_test(model,'Keras\\IRMAS_testdata\\',filename)
+    main_model_test(model,'IRMAS_testdata\\')
 
 
 

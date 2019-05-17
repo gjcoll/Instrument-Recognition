@@ -8,12 +8,18 @@ from keras import backend as K
 from sklearn.model_selection import train_test_split
 from keras.backend import spatial_2d_padding
 from keras.backend import expand_dims
+from model_testing import main_model_test
 import matplotlib.pyplot as plt
 import utill
 import os
 import numpy as np
 
 from keras_model_options import Han_model
+
+CWD = os.getcwd()
+if CWD.split('\\')[-1] != 'Keras':
+    CWD = os.path.join(CWD,'Keras')
+
 #############
 # Develop a class based system for robust programming and easy implimentation.
 ###########
@@ -30,6 +36,8 @@ class Model_training():
         self.patience = patience
         self.min_acc = min_acc
         self.multilable = multilable
+
+
 
     def train_untill(self, training_data, validation_data, input_shape):
 
@@ -64,7 +72,7 @@ class Model_training():
             print('Test accuracy:', score[1])
         return model, history
 
-    def train_model(self, training_data_dir: str, additional_data: list = None,complex_reader=False):
+    def train_model(self, training_data_dir: str, additional_data: list = None, augment_data = False, complex_reader=False,RandomState=None):
         
         if not complex_reader:
             X, y  = utill.read_npz_folder(training_data_dir)
@@ -87,14 +95,20 @@ class Model_training():
                 train_test_split(X, y, test_size=.15)
         del X
         del y
-
+        
         if not(additional_data is None):
             for add_data in additional_data:
                 X_add, y_add =utill.read_npz_folder(add_data)
                 x_train=np.append(x_train,X_add,axis = 0)
                 y_train=np.append(y_train,y_add,axis = 0)
 
-        img_rows, img_cols = x_train.shape[1], x_train.shape[2] # Needs to be set to the dimensions of the IRMAS dataset
+        if augment_data:
+            x_train = [utill.drop_timenfreq(x,RandomState=RandomState) for x in x_train]
+
+        x_train = np.asarray(x_train)
+        x_val = np.asarray(x_val)
+
+        img_rows, img_cols = x_train.shape[1], x_train.shape[2] 
         x_train = x_train.reshape(x_train.shape[0], img_rows, img_cols, 1)
         x_val = x_val.reshape(x_val.shape[0], img_rows, img_cols, 1)
         input_shape = (img_rows, img_cols, 1)
@@ -107,10 +121,9 @@ class Model_training():
 
 if __name__ == "__main__":
     # Loading of data
-    cwd = os.getcwd()
-    filedir = 'Keras\\OpenMic_1of4\\'
-    mt_object = Model_training(Han_model,num_classes=20,min_acc=0.73,multilable=True)
-    model,history,x_val,y_val = mt_object.train_model(filedir,complex_reader=True)
+    filedir = 'IRMAS_trainingData_full\\'
+    mt_object = Model_training(Han_model,num_classes=11,min_acc=0.73)
+    model,history,x_val,y_val = mt_object.train_model(filedir,augment_data=True,additional_data=['Nsynth\\'])#additional_data=['Nsynth\\']
 
     answer = input('Would you like to save the model? [y/n]')
     answer=answer.lower()
@@ -127,7 +140,9 @@ if __name__ == "__main__":
         y_sl_true = utill.mutilabel2single(y_val)
         y_sl_pred = utill.mutilabel2single(y_pred)
         utill.plot_confusion_matrix(y_sl_true,y_sl_pred,utill.CLASS_NAMES,title = model_name, save=True)
+        main_model_test(model,'IRMAS_testdata\\',model_name+'.csv')
+
         # serialize weights to HDF5
-        model.save_weights(os.path.join(cwd,'Keras\\trained_models',model_name+"_weights.h5"))
+        model.save_weights(os.path.join(CWD,'trained_models',model_name+"_weights.h5"))
         print("Saved model to disk")
 

@@ -5,7 +5,6 @@ import numpy as np
 import matplotlib.animation as animation
 import pickle
 
-
 with open('IRMAS_predictions_all.pkl', 'rb') as f:
     a = pickle.load(f)
 x, b, c, d, e, f, g, u, aa, ab = [], [], [], [], [], [], [], [], [], []

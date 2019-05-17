@@ -15,7 +15,9 @@ from sklearn.metrics import confusion_matrix
 from sklearn.utils.multiclass import unique_labels
 
 CLASS_NAMES = ['Cello', 'Clarinet', 'Flute', 'Acoustic Guitar', 'Electric Guitar','Organ','Piano','Saxophone','Trumpet','Violin','Voice'] 
-
+CWD = os.getcwd()
+if CWD.split('\\')[-1] != 'Keras':
+    CWD = os.path.join(CWD,'Keras')
 
 def load_folder(data_path,max_count,done_folder):
     ## Function to load .wav files in a given folder to an array of (data, sample rate) ##
@@ -155,9 +157,6 @@ def train_split_spec(X:np.array,y:np.array,time_split:int = 44):
     return X_list, y_list
 
 
-
-
-
 def load_folder_IRMAS(data_path,max_count,done_folder):
     ## Downsamples tp 22050 and converts stero to mono and only loads 1sec to make dimensions match the paper
 
@@ -201,8 +200,8 @@ def get_npz_filenames(filedir):
     # OUTPUT
     # roots = the root directory
     # npz_files = generator object within root containing npz_files
-    cw = os.getcwd()
-    for roots, dirs,files in os.walk(os.path.join(cw, filedir)):
+
+    for roots, dirs,files in os.walk(os.path.join(CWD, filedir)):
         npz_files = (f for f in files)
         return roots, npz_files
 
@@ -328,6 +327,26 @@ def load_folder_Test(data_path):
                 
     return samples
 
+def drop_timenfreq(X, chuncks = 2, RandomState = None):
+    ## Designed to take a single mel spec and drop random cunks of time and freq
+    freq_len, time_len = (128,44)
+    t_min = int(time_len * 0.05)
+    t_max = int(time_len * 0.15)
+    f_min = int(freq_len * 0.05)
+    f_max = int(freq_len * 0.20)
+
+    random = np.random.RandomState(RandomState)
+    i = 0 
+    while i < chuncks:
+        t_chunk = random.randint(t_min,t_max)
+        f_chunk = random.randint(f_min,f_max)
+        f_loc = random.randint(0, freq_len-f_chunk)
+        t_loc = random.randint(0, time_len-t_chunk)
+        X[f_loc:f_chunk,:] = 0
+        X[t_loc:t_chunk,:]
+        i += 1
+    
+    return X
 
 def spec_Testing(fpath,filename,dest_path,label):
     ## Function that combines loading, mel spec and compressing for multiple samples 
@@ -392,9 +411,7 @@ def label_convert(input_label, IRMAS_in = True):
                     out_label[new_ind] = 1
             dex = dex+1
 
-    return out_label
-                
-
+    return out_label               
     
 def mutilabel2single(mutli_label, labels=CLASS_NAMES):
     # A function that returns single labels for use of confusion matrix
@@ -404,7 +421,6 @@ def mutilabel2single(mutli_label, labels=CLASS_NAMES):
         single_label[i] = labels[int(np.argmax(label))]
         i+=1
     return single_label
-
 
 
 ## Analysis 
