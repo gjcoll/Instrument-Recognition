@@ -7,6 +7,7 @@ import model_testing
 import os
 import keras
 import time
+import easygui
 
 from os import listdir
 from os.path import isfile, join
@@ -14,6 +15,8 @@ from keras_model_options import Han_model
 from keras.callbacks import EarlyStopping
 from keras import backend as K
 from animator import ResultAnimator
+
+
 
 CWD = os.getcwd()
 if CWD.split('\\')[-1] != 'Keras':
@@ -24,15 +27,19 @@ if __name__ == "__main__":
     Section 1:
     Select an audio signal to have IR done on
     """
-    #Place holder comment
+    songfile = easygui.fileopenbox()
     """
     Section 2:
     Run the whole audio signal through our preprocessing pipline
     """
-    # Ths following section is a place holder for preprocessing
-    X,y = utill.read_test_npz_folder(join(CWD,'IRMAS_testdata'))
-    # for testing
-    X = X[0]
+    #preprocess single audio file from section 1
+    melspecs = utill.preprocess_single(songfile)
+    X = melspecs
+    
+    # uncomment below to open npz folder of preprocessed data
+#     X,y = utill.read_test_npz_folder(join(CWD,'IRMAS_testdata'))
+#     # for testing
+#     X = X[0]
     """
     Section 3:
     Run the preprocessed audio signal through several models, outputing a dictionary of model name to outputs
