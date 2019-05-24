@@ -129,6 +129,14 @@ def spec_multiple(src_path, dest_path, done_folder, label, max_count):
     np.savez_compressed(dest_path, data = ln_melspecs_A, labels = A_labels)
 
     return np.shape(ln_melspecs_A)
+
+def preprocess_single(fpath):
+    A_samp,sr = librosa.core.load(fpath,sr = 22050, mono = True)
+    A_norm = A_samp / (np.amax(A_samp))
+    mels = mel_spec_it(A_norm,sr)
+    ln_mels = np.log(abs(mels)+np.finfo(np.float64).eps)
+    # np.savez_compressed(dest_path, data = ln_mels,  labels = label )
+    return ln_mels
     
 def train_split_spec(X:np.array,y:np.array,time_split:int = 44):
     # Splits training and validation data that is longer than a second into 1 second long spec
