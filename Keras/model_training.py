@@ -122,7 +122,7 @@ class Model_training():
 if __name__ == "__main__":
     # Loading of data
     filedir = 'IRMAS_trainingData_full\\'
-    mt_object = Model_training(Han_model,num_classes=11,min_acc=0.73)
+    mt_object = Model_training(Han_model,num_classes=11,min_acc=0.71)
     model,history,x_val,y_val = mt_object.train_model(filedir,augment_data=True,additional_data=['Nsynth\\'])#additional_data=['Nsynth\\']
 
     answer = input('Would you like to save the model? [y/n]')
