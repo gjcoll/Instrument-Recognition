@@ -13,11 +13,12 @@ CWD = os.getcwd()
 if CWD.split('\\')[-1] != 'Keras':
     CWD = join(CWD,'Keras')
 
+plt.rcParams['animation.ffmpeg_path'] = os.path.join(os.getcwd(), 'ffmpeg-20190527-3da8d04-win64-static\\bin\\ffmpeg.exe')
 matplotlib.use('TkAgg')
 
 class ResultAnimator():
 
-    def __init__(self,class_names):
+    def __init__(self,class_names,sr=2):
         self.x = []
         self.b = [] 
         self.c = []
@@ -32,6 +33,8 @@ class ResultAnimator():
         self.ani = None
         self.rects = None
         self.class_names = class_names
+        self.N  = len(class_names)
+        self.interval = (1/sr* 1000)/5
 
     def resest(self):
         self.x = []
@@ -60,7 +63,7 @@ class ResultAnimator():
             listobj1 = results[i].tolist()
             listobj2 = results[i+1].tolist()
             for m in range(11):
-                self.b.append(np.linspace(listobj1[m], listobj2[m], num=5, endpoint=False).tolist())
+                self.b.append(np.linspace(listobj1[m], listobj2[m], num=5, endpoint=False).tolist()) #This is the interpolation part of the graph
             for j in range(11):
                 self.c.append(self.b[j][0])
                 self.d.append(self.b[j][1])
@@ -79,20 +82,22 @@ class ResultAnimator():
         fig, ax = plt.subplots()
         self.rects = plt.bar(range(N), y[0],  align='center')
         xticks = self.class_names
-        plt.xticks(range(11), xticks, size=8, rotation=45)
-        plt.xlim([-1, 11])
+        plt.xticks(range(N), xticks, size=8, rotation=45)
+        plt.xlim([-1, N])
         plt.ylim([0, 1])
-        plt.rcParams['animation.ffmpeg_path'] = r'PATHTOFFMPEG'
-        self.ani = animation.FuncAnimation(fig, self.animated_barplot, blit=True, interval=(23*5),  repeat=False, frames=len(self.x))
-        plt.show()
+
+        self.ani = animation.FuncAnimation(fig, self.animated_barplot, blit=True, interval=self.interval,  repeat=False, frames=len(self.x))
+
 
     def save_animation(self,filename):
         Writer = animation.FFMpegWriter
-        writer = Writer(metadata=dict(artist='Me'))
+        writer = Writer(fps=1/self.interval*1000,metadata=dict(artist='Instrument_rec'))
         self.ani.save(filename, writer=writer)
+        print('Done Saving')
 
 if __name__ == "__main__":
     with open(join(CWD,'predictions\\IRMAS_predictions_all.pkl'), 'rb') as f:
         a = pickle.load(f)
     RA=ResultAnimator(utill.CLASS_NAMES)
     RA.animate_results(a[0])
+    RA.save_animation(join(CWD,'videos','test.mp4'))

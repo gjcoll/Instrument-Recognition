@@ -39,13 +39,19 @@ class Model_training():
 
 
 
-    def train_untill(self, training_data, validation_data, input_shape):
+    def train_untill(self, training_data, validation_data, input_shape,augment_data):
 
         score=[0,0]
-        x_train, y_train = training_data[0], training_data[1]
+        x_, y_train = training_data[0], training_data[1]
         x_val, y_val = validation_data[0], validation_data[1]
+        
+        while score[1] < self.min_acc:
 
-        while score[1] < self.min_acc: 
+            if augment_data:
+                x_train = np.asarray([utill.drop_timenfreq(x, chuncks= 1) for x in x_])
+            else:
+                x_train = x_
+           
             
             model= self.model_func(input_shape,num_classes = self.num_classes)
             if self.multilable:
@@ -102,8 +108,8 @@ class Model_training():
                 x_train=np.append(x_train,X_add,axis = 0)
                 y_train=np.append(y_train,y_add,axis = 0)
 
-        if augment_data:
-            x_train = [utill.drop_timenfreq(x,RandomState=RandomState) for x in x_train]
+        # if augment_data:
+        #     x_train = [utill.drop_timenfreq(x, chuncks= 1, RandomState=RandomState) for x in x_train]
 
         x_train = np.asarray(x_train)
         x_val = np.asarray(x_val)
@@ -115,15 +121,17 @@ class Model_training():
 
         x_train = x_train.astype('float32')
         x_val = x_val.astype('float32')
-        model, history = self.train_untill((x_train,y_train),(x_val,y_val),input_shape)
+        print('Training size is {}'.format(len(x_train)))
+        print('Validation size is {}'.format(len(x_val)))
+        model, history = self.train_untill((x_train,y_train),(x_val,y_val),input_shape,augment_data)
         return model, history, x_val, y_val
 
 
 if __name__ == "__main__":
     # Loading of data
     filedir = 'IRMAS_trainingData_full\\'
-    mt_object = Model_training(Han_model,num_classes=11,min_acc=0.71)
-    model,history,x_val,y_val = mt_object.train_model(filedir,augment_data=True,additional_data=['Nsynth\\'])#additional_data=['Nsynth\\']
+    mt_object = Model_training(Han_model,num_classes=11,min_acc=0.72)
+    model,history,x_val,y_val = mt_object.train_model(filedir,augment_data=False,additional_data=['Nsynth\\'])#additional_data=['Nsynth\\']
 
     answer = input('Would you like to save the model? [y/n]')
     answer=answer.lower()

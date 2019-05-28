@@ -223,6 +223,7 @@ def main_model_test(model,testing_dir,filename=None):
     df = pd.DataFrame({'Micro':multiclass_F1(y_test,y_score,average_type='micro'),'Macro':multiclass_F1(y_test,y_score,average_type='macro')},index =['F1','Precision','Recall'])
     df = pd.concat([batch_df,df])
     print(df)
+    print(len(y_test))
     # set up the ouput file extensions
     if not (filename is None):
         out_dir = os.path.join(CWD,'Model_results',filename)

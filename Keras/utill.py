@@ -7,6 +7,7 @@ import shutil
 import gzip
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
+import copy
 
 from pathlib import Path
 from sklearn import svm, datasets
@@ -337,6 +338,7 @@ def load_folder_Test(data_path):
 
 def drop_timenfreq(X, chuncks = 2, RandomState = None):
     ## Designed to take a single mel spec and drop random cunks of time and freq
+    XX =copy.copy(X)
     freq_len, time_len = (128,44)
     t_min = int(time_len * 0.05)
     t_max = int(time_len * 0.15)
@@ -346,15 +348,15 @@ def drop_timenfreq(X, chuncks = 2, RandomState = None):
     random = np.random.RandomState(RandomState)
     i = 0 
     while i < chuncks:
-        t_chunk = random.randint(t_min,t_max)
-        f_chunk = random.randint(f_min,f_max)
+        t_chunk = random.randint(t_min,t_max)//chuncks
+        f_chunk = random.randint(f_min,f_max)//chuncks
         f_loc = random.randint(0, freq_len-f_chunk)
         t_loc = random.randint(0, time_len-t_chunk)
-        X[f_loc:f_chunk,:] = 0
-        X[t_loc:t_chunk,:]
+        XX[f_loc:f_loc+f_chunk,:] = np.zeros(X[f_loc:f_loc+f_chunk,:].shape)
+        XX[:,t_loc:t_loc+t_chunk] = np.zeros(X[:,t_loc:t_loc+t_chunk].shape)
         i += 1
     
-    return X
+    return XX
 
 def spec_Testing(fpath,filename,dest_path,label):
     ## Function that combines loading, mel spec and compressing for multiple samples 
@@ -486,7 +488,7 @@ def plot_confusion_matrix(y_true, y_pred, classes,
     plt.show()
     if save:
         cwd=os.getcwd()
-        plt.savefig(os.path.join(cwd, 'Keras\\Model_images', title +'_CM.png'))
+        fig.savefig(os.path.join(cwd, 'Keras\\Model_images', title +'_CM.png'))
     return ax
 
 def plot_accuracy(history, model_name=None, save:bool = False):
